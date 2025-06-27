@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI平台 - 登录注册</title>
+    <title>灵犀智服 - 登录注册</title>
     <style>
         * {
             margin: 0;
@@ -48,13 +48,17 @@
         .logo-icon {
             width: 40px;
             height: 40px;
+            border-radius: 100%;
+            object-fit: contain;
+            margin-right: 10px;
+            /* 添加背景和文字备用 */
             background: linear-gradient(135deg, #4285f4, #34a853);
-            border-radius: 50%;
-            display: flex;
+            color: white;
+                    display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
             font-weight: bold;
+            font-size: 14px;
         }
 
         .container {
@@ -174,7 +178,7 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-label {
@@ -238,7 +242,7 @@
         .password-requirements {
             font-size: 11px;
             color: #999;
-            margin-top: 4px;
+            margin-top: 2px;
             line-height: 1.3;
         }
 
@@ -253,7 +257,7 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 15px;
+            margin-top: 10px;
             position: relative;
             overflow: hidden;
         }
@@ -274,10 +278,12 @@
         }
 
         .form-footer {
-            text-align: center;
-            margin-top: 25px;
-            color: #666;
-            font-size: 14px;
+            display: flex;          /* 启用弹性布局 */
+            justify-content: center; /* 水平居中 */
+            align-items: center;    /* 垂直居中 */
+            gap: 15px;              /* 元素间距 */
+            flex-wrap: wrap;        /* 允许换行 */
+            margin-top: 20px; /* 减小底部链接与表单的间距 */
         }
 
         .form-footer a {
@@ -285,6 +291,11 @@
             text-decoration: none;
             font-weight: 500;
             transition: all 0.3s ease;
+        }
+
+        .footer-separator {
+            color: #ccc;            /* 浅灰色分隔符 */
+            font-size: 14px;
         }
 
         .form-footer a:hover {
@@ -296,10 +307,14 @@
             display: none;
         }
 
+
+        .form-container {
+            margin-top: -20px; /* 负边距使整个表单上移 */
+        }
         .error-message {
             color: #ea4335;
             font-size: 13px;
-            margin-top: 4px;
+            margin-top: 2px;
             opacity: 0;
             transition: opacity 0.3s ease;
             min-height: 18px;
@@ -348,17 +363,17 @@
 
             .form-title {
                 font-size: 28px;
-                margin-bottom: 25px;
+                margin-bottom: 10px; /* 减小标题与表单的间距 */
             }
-        }
+            }
     </style>
 </head>
 <body>
     <!-- 顶部导航 -->
     <div class="header">
         <div class="logo">
-            <div class="logo-icon">AI</div>
-            AI平台
+            <img src="./assets/images/logo.png" alt="公司Logo" class="logo-icon">
+            <span>灵犀智服</span>
         </div>
         <a href="#" class="login-btn" id="headerLoginBtn" style="
             color: #4285f4;
@@ -415,11 +430,15 @@
                         <span>🔓</span> 立即登录
                     </button>
                 </form>
-                
+
                 <div class="form-footer">
-                    没有账号？ <a href="#" id="showRegister">立即注册</a>
-                    <br><br>
-                    忘记密码？ <a href="#" id="forgotPassword">找回密码</a>
+                    <span class="footer-link">
+                        没有账号？ <a href="#" id="showRegister">立即注册</a>
+                    </span>
+                    <span class="footer-separator"> | </span>
+                    <span class="footer-link">
+                        忘记密码？ <a href="#" id="forgotPassword">找回密码</a>
+                    </span>
                 </div>
             </div>
 
