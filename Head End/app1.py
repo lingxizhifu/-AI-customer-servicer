@@ -12,11 +12,15 @@ def start_server():
     """启动HTTP服务器"""
     PORT = 8000
     
-    # 检查当前目录是否有index.html文件
-    if not os.path.exists('index.html'):
+    # 检查Head End目录是否有index.html文件
+    html_path = os.path.join('Head End', 'index.html')
+    if not os.path.exists(html_path):
         print("错误: 找不到 index.html 文件!")
-        print("请确保将生成的HTML代码保存为 'index.html' 文件")
+        print(f"请确保将生成的HTML代码保存为 '{html_path}' 文件")
         return
+    
+    # 切换到Head End目录
+    os.chdir('Head End')
     
     # 创建static文件夹（如果不存在）
     if not os.path.exists('static'):
