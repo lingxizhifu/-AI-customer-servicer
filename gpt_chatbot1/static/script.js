@@ -132,7 +132,8 @@ async function sendMessage() {
     if (!message || isTyping) return;
 
     try {
-        // 保存用户消息
+        // 保存当前用户消息（用于生成建议问题）
+        const currentUserMessage = message;
         lastUserMessage = message;
         
         // 添加用户消息到界面
@@ -156,18 +157,20 @@ async function sendMessage() {
         hideTypingIndicator();
         
         if (data.success) {
-            // 添加AI回复（带操作按钮）
-            addBotMessage(data.message);
+            // 添加AI回复（带操作按钮和基于当前问题的建议问题）
+            addBotMessage(data.message, null, currentUserMessage);
             currentChatId = data.chat_id;
             // 刷新聊天历史
             loadChatHistory();
         } else {
+            // 错误消息不显示建议问题
             addBotMessage(data.error || '抱歉，出现了一些问题，请稍后再试。');
         }
         
     } catch (error) {
         console.error('发送消息失败:', error);
         hideTypingIndicator();
+        // 错误消息不显示建议问题
         addBotMessage('抱歉，网络连接出现问题，请检查网络连接后重试。');
     } finally {
         setTypingState(false);
@@ -176,7 +179,7 @@ async function sendMessage() {
 }
 
 // 专门用于添加带操作按钮的AI消息
-function addBotMessage(text, messageId = null) {
+function addBotMessage(text, messageId = null, userQuestion = null) {
     if (!chatMessages) return;
     
     const time = new Date().toLocaleTimeString('zh-CN', { 
@@ -191,20 +194,119 @@ function addBotMessage(text, messageId = null) {
     const msgId = messageId || 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     messageDiv.setAttribute('data-message-id', msgId);
     
+    // 根据当前用户问题生成建议问题（如果有用户问题的话）
+    const suggestedQuestions = userQuestion ? generateSuggestedQuestions(userQuestion) : [];
+    
     messageDiv.innerHTML = `
         <div class="message-avatar">🤖</div>
         <div class="message-content">
             <div class="message-text">${escapeHtml(text)}</div>
             <div class="message-time">${escapeHtml(time)}</div>
+            
             <div class="message-actions">
                 <span class="action-icon-simple" onclick="regenerateMessage('${msgId}')" title="重新生成">↻</span>
                 <span class="action-icon-simple" onclick="copyMessage('${msgId}')" title="复制">⧉</span>
+                <div class="feedback-icons">
+                    <span class="feedback-btn like" onclick="toggleFeedback('${msgId}', 'like')" title="点赞">👍</span>
+                    <span class="feedback-btn dislike" onclick="toggleFeedback('${msgId}', 'dislike')" title="鄙视">👎</span>
+                </div>
             </div>
+            
+            <!-- 建议问题区域 - 只在有用户问题时显示 -->
+            ${suggestedQuestions.length > 0 ? `
+            <div class="suggested-questions">
+                <div class="suggested-title">您还可能想问：</div>
+                <div class="suggested-buttons">
+                    ${suggestedQuestions.map(question => 
+                        `<div class="suggested-btn" onclick="sendFAQMessage(\`${question.replace(/`/g, '\\`')}\`)">
+                            <span class="suggested-icon">💬</span>
+                            <span class="suggested-text">${escapeHtml(question)}</span>
+                        </div>`
+                    ).join('')}
+                </div>
+            </div>
+            ` : ''}
         </div>
     `;
     
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
+}
+
+// 新增：根据用户问题生成建议问题
+function generateSuggestedQuestions(userMessage) {
+    if (!userMessage) return [];
+    
+    const questionSets = {
+        // 优惠活动相关
+        '优惠|活动|折扣|促销': [
+            '有会员专享优惠吗？',
+            '优惠活动什么时候结束？',
+            '如何获得更多优惠券？'
+        ],
+        
+        // 物流配送相关
+        '物流|配送|发货|快递': [
+            '可以指定配送时间吗？',
+            '支持货到付款吗？',
+            '配送费用是多少？'
+        ],
+        
+        // 退换货相关
+        '退货|换货|退款|不想要': [
+            '退货需要什么条件？',
+            '退款多久能到账？',
+            '可以只退部分商品吗？'
+        ],
+        
+        // 登山装备相关
+        '登山|装备|户外|装具': [
+            '什么季节适合登山？',
+            '新手推荐哪些装备？',
+            '装备如何保养维护？'
+        ],
+        
+        // 商品信息相关
+        '商品|产品|详细|信息|介绍': [
+            '这个商品有什么颜色？',
+            '商品的尺寸规格是什么？',
+            '有用户评价吗？'
+        ],
+        
+        // 招牌商品相关
+        '招牌|推荐|热销|爆款': [
+            '哪些商品评价最好？',
+            '最受欢迎的商品是什么？',
+            '有新品推荐吗？'
+        ],
+        
+        // 发货时间相关
+        '发货|什么时候|多久|时间': [
+            '可以加急发货吗？',
+            '节假日也发货吗？',
+            '发货后多久能收到？'
+        ],
+        
+        // 通用问题
+        'default': [
+            '有客服微信吗？',
+            '店铺营业时间是？',
+            '支持哪些支付方式？'
+        ]
+    };
+    
+    // 根据用户消息匹配相关问题
+    for (const [keywords, questions] of Object.entries(questionSets)) {
+        if (keywords !== 'default') {
+            const regex = new RegExp(keywords, 'i');
+            if (regex.test(userMessage)) {
+                return questions;
+            }
+        }
+    }
+    
+    // 如果没有匹配到，返回通用问题
+    return questionSets.default;
 }
 
 // 重新生成消息功能
@@ -254,6 +356,43 @@ async function regenerateMessage(messageId) {
         if (data.success) {
             // 更新消息内容
             messageText.innerHTML = escapeHtml(data.message);
+            
+            // 查找是否已有建议问题区域
+            let suggestedQuestionsDiv = messageElement.querySelector('.suggested-questions');
+            
+            // 基于最后的用户问题重新生成建议问题
+            const updatedSuggestedQuestions = generateSuggestedQuestions(lastUserMessage);
+            
+            if (updatedSuggestedQuestions.length > 0) {
+                const suggestedHTML = `
+                    <div class="suggested-questions">
+                        <div class="suggested-title">您还可能想问：</div>
+                        <div class="suggested-buttons">
+                            ${updatedSuggestedQuestions.map(question => 
+                                `<div class="suggested-btn" onclick="sendFAQMessage(\`${question.replace(/`/g, '\\`')}\`)">
+                                    <span class="suggested-icon">💬</span>
+                                    <span class="suggested-text">${escapeHtml(question)}</span>
+                                </div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                `;
+                
+                if (suggestedQuestionsDiv) {
+                    // 如果已有建议问题区域，更新它
+                    suggestedQuestionsDiv.outerHTML = suggestedHTML;
+                } else {
+                    // 如果没有，插入到message-time后面
+                    const messageTimeDiv = messageElement.querySelector('.message-time');
+                    if (messageTimeDiv) {
+                        messageTimeDiv.insertAdjacentHTML('afterend', suggestedHTML);
+                    }
+                }
+            } else if (suggestedQuestionsDiv) {
+                // 如果没有建议问题但存在旧的建议问题区域，移除它
+                suggestedQuestionsDiv.remove();
+            }
+            
             currentChatId = data.chat_id;
             // 刷新聊天历史
             loadChatHistory();
@@ -279,6 +418,48 @@ async function regenerateMessage(messageId) {
         }
     } finally {
         setTypingState(false);
+    }
+}
+
+// 新增：处理点赞和鄙视反馈的互斥逻辑
+function toggleFeedback(messageId, feedbackType) {
+    try {
+        const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (!messageElement) {
+            console.error('消息未找到');
+            return;
+        }
+        
+        const likeBtn = messageElement.querySelector('.feedback-btn.like');
+        const dislikeBtn = messageElement.querySelector('.feedback-btn.dislike');
+        
+        if (!likeBtn || !dislikeBtn) {
+            console.error('反馈按钮未找到');
+            return;
+        }
+        
+        if (feedbackType === 'like') {
+            if (likeBtn.classList.contains('active')) {
+                // 如果点赞已激活，取消激活
+                likeBtn.classList.remove('active');
+            } else {
+                // 激活点赞，取消鄙视
+                likeBtn.classList.add('active');
+                dislikeBtn.classList.remove('active');
+            }
+        } else if (feedbackType === 'dislike') {
+            if (dislikeBtn.classList.contains('active')) {
+                // 如果鄙视已激活，取消激活
+                dislikeBtn.classList.remove('active');
+            } else {
+                // 激活鄙视，取消点赞
+                dislikeBtn.classList.add('active');
+                likeBtn.classList.remove('active');
+            }
+        }
+        
+    } catch (error) {
+        console.error('处理反馈失败:', error);
     }
 }
 
@@ -755,6 +936,7 @@ async function deleteChat(chatId) {
 // 修改原有的 addMessage 函数，区分用户消息和机器人消息
 function addMessage(text, sender) {
     if (sender === 'bot') {
+        // 机器人消息不带建议问题（用于错误消息等）
         addBotMessage(text);
     } else {
         // 用户消息保持原样
@@ -766,12 +948,12 @@ function addMessage(text, sender) {
     }
 }
 
-// 修改 addMessageWithTime 函数，为历史消息也添加操作按钮
+// 修改 addMessageWithTime 函数，历史消息不显示建议问题
 function addMessageWithTime(text, sender, time) {
     if (!chatMessages) return;
     
     if (sender === 'bot') {
-        // 对于机器人消息，使用带操作按钮的版本
+        // 对于机器人历史消息，不显示建议问题，只显示操作按钮
         const messageDiv = document.createElement('div');
         messageDiv.className = 'message bot';
         
@@ -786,6 +968,10 @@ function addMessageWithTime(text, sender, time) {
                 <div class="message-actions">
                     <span class="action-icon-simple" onclick="regenerateMessage('${msgId}')" title="重新生成">↻</span>
                     <span class="action-icon-simple" onclick="copyMessage('${msgId}')" title="复制">⧉</span>
+                    <div class="feedback-icons">
+                        <span class="feedback-btn like" onclick="toggleFeedback('${msgId}', 'like')" title="点赞">👍</span>
+                        <span class="feedback-btn dislike" onclick="toggleFeedback('${msgId}', 'dislike')" title="鄙视">👎</span>
+                    </div>
                 </div>
             </div>
         `;
@@ -810,6 +996,61 @@ function addMessageWithTime(text, sender, time) {
     }
     
     scrollToBottom();
+}
+
+// 新增：基于AI回复内容生成建议问题
+function generateSuggestedQuestionsFromContent(botResponse) {
+    if (!botResponse) return [];
+    
+    const contentBasedQuestions = {
+        // 优惠活动回复
+        '优惠|折扣|活动|促销': [
+            '还有其他优惠吗？',
+            '如何获得会员折扣？',
+            '优惠券怎么使用？'
+        ],
+        
+        // 物流配送回复
+        '物流|配送|发货|快递': [
+            '可以加急配送吗？',
+            '配送范围有限制吗？',
+            '包装是否安全？'
+        ],
+        
+        // 退换货回复
+        '退货|退款|换货': [
+            '退货包邮吗？',
+            '可以换其他款式吗？',
+            '退款到哪个账户？'
+        ],
+        
+        // 商品推荐回复
+        '推荐|商品|产品': [
+            '价格范围是多少？',
+            '有现货吗？',
+            '质量怎么样？'
+        ],
+        
+        // 通用回复
+        'default': [
+            '还有其他问题吗？',
+            '需要人工客服吗？',
+            '有购买链接吗？'
+        ]
+    };
+    
+    // 根据AI回复内容匹配相关问题
+    for (const [keywords, questions] of Object.entries(contentBasedQuestions)) {
+        if (keywords !== 'default') {
+            const regex = new RegExp(keywords, 'i');
+            if (regex.test(botResponse)) {
+                return questions;
+            }
+        }
+    }
+    
+    // 如果没有匹配到，返回通用问题
+    return contentBasedQuestions.default;
 }
 
 function clearChatMessages() {
