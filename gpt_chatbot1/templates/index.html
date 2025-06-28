@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆析智服 - AI客服系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- 移动端遮罩层 -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- 主要内容区域 -->
+    <div class="main-container">
+        <!-- 左侧导航栏 -->
+        <div class="left-sidebar" id="leftSidebar">
+            <div class="logo-section">
+                <div class="logo"></div>
+                <div class="system-title">聆析智服</div>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <div class="nav-icon">🏠</div>
+                    <span>首页</span>
+                </div>
+                <div class="nav-item active">
+                    <div class="nav-icon">🎧</div>
+                    <span>客服中心</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">💬</div>
+                    <span>消息</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">👥</div>
+                    <span>用户</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">🚪</div>
+                    <span>退出</span>
+                </div>
+            </div>
+            <div class="user-section">
+                <div class="user-avatar">👤</div>
+                <div class="user-info">
+                    <div class="user-name">用户名</div>
+                    <div class="user-email">user@example.com</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间客服功能区域 -->
+        <div class="service-center" id="serviceCenter">
+            <div class="action-section">
+                <button class="action-btn" onclick="startNewChat()">
+                    <span>✏️</span>
+                    <span>新聊天</span>
+                </button>
+                <button class="action-btn" onclick="searchChats()">
+                    <span>🔍</span>
+                    <span>查询聊天</span>
+                </button>
+                <button class="action-btn" onclick="clearAllChats()">
+                    <span>🗑️</span>
+                    <span>清空聊天</span>
+                </button>
+            </div>
+            
+            <!-- 聊天历史区域 - 动态加载 -->
+            <div class="chat-history" id="chatHistory">
+                <!-- 这里将通过JavaScript动态加载聊天历史 -->
+            </div>
+        </div>
+
+        <!-- 右侧主区域 -->
+        <div class="right-main">
+            <!-- 顶部内容区域：插图 + FAQ -->
+            <div class="top-content">
+                <!-- 左侧插图区域 -->
+                <div class="illustration-section">
+                    <div class="hero-illustration"></div>
+                </div>
+                
+                <!-- 右侧FAQ区域 -->
+                <div class="faq-section">
+                    <div class="faq-title">常见问题FAQ</div>
+                    <div class="faq-grid">
+                        <div class="faq-item" onclick="insertFAQ('如何查询订单物流？')">
+                            <div class="faq-question">如何查询订单物流？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('如何投诉AI客服的服务？')">
+                            <div class="faq-question">如何投诉AI客服的服务？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('退换货流程是什么？')">
+                            <div class="faq-question">退换货流程是什么？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('AI客服的服务时间？')">
+                            <div class="faq-question">AI客服的服务时间？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('账户密码忘记了怎么办？')">
+                            <div class="faq-question">账户密码忘记了怎么办？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('AI客服会分析我的对话内容吗？')">
+                            <div class="faq-question">AI客服会分析我的对话内容吗？</div>
+                        </div>
+                        <div class="faq-item" onclick="insertFAQ('AI客服回答错误怎么办？')">
+                            <div class="faq-question">AI客服回答错误怎么办？</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 聊天区域 -->
+            <div class="chat-area">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message bot">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <div class="message-text">您好！我是"聆析智服"AI客服，请问您需要什么帮助？</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="input-container">
+                        <div class="input-actions">
+                            <button class="input-btn" title="附加文件">➕</button>
+                        </div>
+                        <textarea 
+                            class="message-input" 
+                            id="messageInput" 
+                            placeholder="请输入您的问题..."
+                            rows="1"
+                        ></textarea>
+                        <div class="input-actions">
+                            <button class="input-btn" title="语音输入">🎤</button>
+                            <button class="send-button" id="sendButton" onclick="sendMessage()" title="发送消息">↗</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
