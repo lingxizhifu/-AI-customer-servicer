@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆析智服</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f7fa;
+            height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* 左侧导航栏 */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background-image: url('./static/ai-icon.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            margin-right: 12px;
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 8px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: #666;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(66, 133, 244, 0.1);
+            color: #4285f4;
+        }
+
+        .nav-link::before {
+            content: '';
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            opacity: 0.7;
+        }
+
+        .user-info {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 修改1: 用户头像 - 使用您的图片 */
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background-image: url('./static/user-avatar.png');
+            background-size: cover;
+            background-position: center;
+            border-radius: 6px;
+            margin-right: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .user-email {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 主内容区域 */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* 推荐卡片区域 */
+        .featured-section {
+            margin-bottom: 40px;
+        }
+
+        .featured-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .featured-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .featured-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* 修改2: 确保美乐的图标也是圆形且大小一致 */
+        .card-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;  /* 确保是正圆形 */
+            margin-right: 16px;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;  /* 防止变形 */
+        }
+
+        .card-info h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+        }
+
+        .card-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .card-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #999;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Agent模板区域 */
+        .agents-section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .search-box::before {
+            content: '🔍';
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            color: #666;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active, .tab:hover {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .agent-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .agent-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);
+        }
+
+        .agent-title {
+            font-size: 16px;
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        .agent-description {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        /* 修改3: 调整右侧卡片统计信息位置，使其与左侧对齐 */
+        .agent-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-top: 20px;  /* 增加上边距，向下移动 */
+        }
+
+        .more-link {
+            color: #4facfe;
+            text-decoration: none;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .more-link:hover {
+            color: #2196F3;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .featured-cards, .agents-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">聆析智服</div>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active">🏠 首页</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">🎧 客服中心</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">💬 消息</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">👤 用户</a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">🚪 退出</a>
+                </li>
+            </ul>
+
+            <div class="user-info">
+                <div class="user-avatar"></div>
+                <div>
+                    <div class="user-name">用户名</div>
+                    <div class="user-email">925496629@qq.com</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区域 -->
+        <div class="main-content">
+            <div class="header">
+                <h1>AI应用</h1>
+                <h2>精选推荐</h2>
+            </div>
+
+            <!-- 推荐卡片区域 -->
+            <div class="featured-section">
+                <div class="featured-cards">
+                    <div class="featured-card">
+                        <div class="card-header">
+                            <div class="card-avatar" style="background-image: url('./static/ai-icon.png'); background-size: cover; background-position: center;"></div>
+                            <div class="card-info">
+                                <h3>聆析客服</h3>
+                                <p>高效电商平台、随时随地响应，辅助客服...</p>
+                            </div>
+                        </div>
+                        <a href="#" class="more-link">了解更多 →</a>
+                    </div>
+
+                    <div class="featured-card">
+                        <div class="card-header">
+                            <div class="card-avatar" style="background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);">美</div>
+                            <div class="card-info">
+                                <h3>美乐（Melody）女装客服</h3>
+                                <p>美乐（Melody）每一刻，都是优势优秀的消费，我可以为你做...</p>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <span class="stat-item">⚡ 7 技能</span>
+                            <span class="stat-item">📄 1 文档</span>
+                            <span class="stat-item">👥 9833</span>
+                        </div>
+                    </div>
+
+                    <div class="featured-card">
+                        <div class="card-header">
+                            <div class="card-avatar" style="background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);">小</div>
+                            <div class="card-info">
+                                <h3>小红书爆款内容分析生成</h3>
+                                <p>适合对爆款内容把握与分析及内容创新与改造和生成</p>
+                            </div>
+                        </div>
+                        <div class="card-stats">
+                            <span class="stat-item">⚡ 5 技能</span>
+                            <span class="stat-item">📄 0 文档</span>
+                            <span class="stat-item">👥 65775</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent模板区域 -->
+            <div class="agents-section">
+                <div class="section-header">
+                    <h2 class="section-title">Agent 模板</h2>
+                </div>
+
+                <div class="category-tabs">
+                    <a href="#" class="tab active">全部</a>
+                    <a href="#" class="tab">智能客服</a>
+                    <a href="#" class="tab">电商</a>
+                    <a href="#" class="tab">销售</a>
+                    <a href="#" class="tab">营销</a>
+                    <a href="#" class="tab">HR</a>
+                    <a href="#" class="tab">快速上手</a>
+                    <div class="search-box">
+                        <input type="text" placeholder="搜索Agent名称">
+                    </div>
+                </div>
+
+                <div class="agents-grid">
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 100%);"></div>
+                            <h3 class="agent-title">美乐（Melody）女装客服</h3>
+                        </div>
+                        <p class="agent-description">美乐（Melody）每一刻，都是优秀的穿搭师，我可以...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 7 技能</span>
+                                <span>📄 1 文档</span>
+                            </div>
+                            <span>👥 9833</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);"></div>
+                            <h3 class="agent-title">小红书爆款内容分析生成</h3>
+                        </div>
+                        <p class="agent-description">适合对爆款内容把握与分析及内容创新与改...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 5 技能</span>
+                                <span>📄 0 文档</span>
+                            </div>
+                            <span>👥 65775</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #ffecd2 0%, #fcb69f 100%);"></div>
+                            <h3 class="agent-title">店铺数据分析师</h3>
+                        </div>
+                        <p class="agent-description">帮可以做出改进销售分析和预测，助力您的业务...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 4 技能</span>
+                                <span>📄 0 文档</span>
+                            </div>
+                            <span>👥 5675</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);"></div>
+                            <h3 class="agent-title">汽车销售AI工作助理</h3>
+                        </div>
+                        <p class="agent-description">提供专业三手车销售服务，车辆推荐及交付/图片/...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 6 技能</span>
+                                <span>📄 2 文档</span>
+                            </div>
+                            <span>👥 3241</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 100%);"></div>
+                            <h3 class="agent-title">文档QA助手</h3>
+                        </div>
+                        <p class="agent-description">智能知识管理，轻松一体文档，我可以上传多业务...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 3 技能</span>
+                                <span>📄 1 文档</span>
+                            </div>
+                            <span>👥 8892</span>
+                        </div>
+                    </div>
+
+                    <div class="agent-card">
+                        <div class="agent-header">
+                            <div class="agent-avatar" style="background: linear-gradient(45deg, #a8edea 0%, #fed6e3 100%);"></div>
+                            <h3 class="agent-title">StyleHub销售分析助理</h3>
+                        </div>
+                        <p class="agent-description">作为一个专业的销售分析师，我能够准确有领域的...</p>
+                        <div class="agent-stats">
+                            <div>
+                                <span>⚡ 5 技能</span>
+                                <span>📄 2 文档</span>
+                            </div>
+                            <span>👥 4567</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 导航链接点击效果
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 分类标签点击效果
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 搜索框功能
+            const searchInput = document.querySelector('.search-box input');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const agentCards = document.querySelectorAll('.agent-card');
+                
+                agentCards.forEach(card => {
+                    const title = card.querySelector('.agent-title').textContent.toLowerCase();
+                    const description = card.querySelector('.agent-description').textContent.toLowerCase();
+                    
+                    if (title.includes(searchTerm) || description.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+
+            // 卡片悬停效果
+            const cards = document.querySelectorAll('.featured-card, .agent-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
