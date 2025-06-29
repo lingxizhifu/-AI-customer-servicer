@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆析智服 - 个人信息</title>
+    <link rel="stylesheet" href="{% static 'user_index.css' %}">
+    <link rel="stylesheet" href="{% static 'sidebar.css' %}">
+    <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    window.CSRF_TOKEN = getCookie('csrftoken');
+    </script>
+</head>
+<body>
+    <div class="container">
+        {% include 'sidebar.html' with active_page='profile' %}
+        <div class="main-content">
+            <div class="content-header">
+                <h1 class="page-title">
+                    <div class="page-title-icon"></div>
+                    个人信息
+                </h1>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-header">
+                    <div class="header-illustration"></div>
+                    <div class="profile-avatar" onclick="showAvatarModal()">👤</div>
+                    <div class="welcome-text">欢迎您：</div>
+                    <div class="username">USERNAME</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-light" onclick="changeAvatar()">更换头像</button>
+                        <button class="btn btn-danger" onclick="confirmLogout()">注销登录</button>
+                    </div>
+                </div>
+                
+                <div class="tab-navigation">
+                    <button class="tab-btn active" onclick="switchTab('basic')">🔒 基本信息</button>
+                    <button class="tab-btn" onclick="switchTab('security')">🛡️ 账户安全</button>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- 基本信息标签页 -->
+                    <div class="tab-pane active" id="basic-tab">
+                        <form onsubmit="saveBasicInfo(event)">
+                            <div class="form-group">
+                                <div class="form-row">
+                                    <label class="form-label"><span class="form-required">*</span> ID</label>
+                                    <input type="text" class="form-control" value="" readonly style="background: #f8f9fa;" id="user_id">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-row">
+                                    <label class="form-label"><span class="form-required">*</span> 邮箱</label>
+                                    <div class="input-group">
+                                        <input type="email" class="form-control" placeholder="邮箱" value="" id="email">
+                                        <button type="button" class="btn-verify">绑定</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-row">
+                                    <label class="form-label"><span class="form-required">*</span> 手机号</label>
+                                    <input type="tel" class="form-control" value="" id="mobile">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <div class="form-row">
+                                    <label class="form-label"><span class="form-required">*</span> 昵称</label>
+                                    <input type="text" class="form-control" value="" id="nickname">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" style="text-align: center; margin-top: 40px;">
+                                <button type="submit" class="btn-primary">保存修改</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- 账户安全标签页 -->
+                    <div class="tab-pane" id="security-tab">
+                        <form onsubmit="saveSecurityInfo(event)">
+                            <div class="form-group">
+                                <div class="form-row" style="position: relative;">
+                                    <label class="form-label"><span class="form-required">*</span> 新密码</label>
+                                    <input type="password" class="form-control" placeholder="请输入新密码" autocomplete="off" id="newPasswordInput" style="padding-right:40px;">
+                                    <span class="toggle-password" onclick="togglePasswordVisibility()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);cursor:pointer;">
+                                        <!-- 默认隐藏密码（灰色眼睛带斜线） -->
+                                        <svg id="eyeIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M17.94 17.94A10.06 10.06 0 0 1 12 20C7 20 2.73 16.11 1 12c.73-1.64 1.81-3.16 3.06-4.41"/>
+                                            <path d="M22.54 12.88A10.06 10.06 0 0 0 12 4c-1.61 0-3.16.38-4.54 1.06"/>
+                                            <line x1="1" y1="1" x2="23" y2="23"/>
+                                            <path d="M9.53 9.53A3.5 3.5 0 0 0 12 15.5c1.38 0 2.63-.83 3.16-2.03"/>
+                                        </svg>
+                                    </span>
+                                </div>
+                                <div class="form-text">格式：英文大小写字母、数字、符号的组合，长度6~18位</div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-row">
+                                    <label class="form-label"><span class="form-required">*</span> e-mail</label>
+                                    <input type="email" class="form-control" placeholder="请输入绑定邮箱" autocomplete="off">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="verification-row">
+                                    <label class="form-label"><span class="form-required">*</span> 验证码</label>
+                                    <input type="text" class="form-control" placeholder="请输入收到的验证码">
+                                    <button type="button" class="btn-verify" onclick="sendVerificationCode()">获取验证码</button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="text-align: center; margin-top: 40px;">
+                                <button type="submit" class="btn-primary">立即修改</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 头像预览模态框 -->
+    <div class="avatar-modal" id="avatarModal" onclick="closeAvatarModal(event)">
+        <div class="avatar-modal-content">
+            <div class="avatar-close" onclick="closeAvatarModal()">&times;</div>
+            <div class="avatar-large">👤</div>
+            <div class="avatar-info">
+                <h3>USERNAME</h3>
+                <p>ID: 110910</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增头像上传弹窗 -->
+    <div class="avatar-upload-modal" id="avatarUploadModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+        <div class="modal-content" style="background:#fff;padding:30px 40px;border-radius:12px;max-width:350px;margin:auto;position:relative;">
+            <span class="close-btn" onclick="closeAvatarUploadModal()" style="position:absolute;top:10px;right:15px;font-size:22px;cursor:pointer;">&times;</span>
+            <h3 style="margin-bottom:15px;">更换头像</h3>
+            <input type="file" id="avatarUploadInput" accept="image/*" onchange="previewAvatar(event)">
+            <div id="avatarPreview" style="margin:15px 0;"></div>
+            <button class="btn btn-primary" style="width:100%;" onclick="submitAvatar()">保存头像</button>
+        </div>
+    </div>
+
+    <script src="{% static 'user_index.js' %}"></script>
+</body>
+</html>

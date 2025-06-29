@@ -1,0 +1,4 @@
+Django>=3.2,<5.0
+mysqlclient>=2.0
+requests
+# 如有用到其它依赖请补充 

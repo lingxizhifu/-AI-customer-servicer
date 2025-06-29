@@ -1,0 +1,484 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆析智服 - 登录注册</title>
+    <link rel="stylesheet" href="{% static 'login_style.css' %}">
+    <script src="{% static 'login_main.js' %}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #4285f4;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 100%;
+            object-fit: contain;
+            margin-right: 10px;
+            /* 添加背景和文字备用 */
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+                    display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+            display: flex;
+            min-height: 650px;
+            margin-top: 70px;
+        }
+
+        .illustration-section {
+            flex: 1;
+            background: linear-gradient(135deg, #f0f4ff, #e6f0ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .illustration {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+        }
+
+        .robot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 60px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .floating-element {
+            position: absolute;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .element-1 {
+            top: 20%;
+            left: 10%;
+            width: 60px;
+            height: 40px;
+            animation-delay: -1s;
+        }
+
+        .element-2 {
+            top: 30%;
+            right: 15%;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            animation-delay: -2s;
+        }
+
+        .element-3 {
+            bottom: 30%;
+            left: 20%;
+            width: 40px;
+            height: 60px;
+            animation-delay: -0.5s;
+        }
+
+        .element-4 {
+            bottom: 20%;
+            right: 20%;
+            width: 70px;
+            height: 30px;
+            animation-delay: -1.5s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 40px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 650px;
+            overflow-y: auto;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .form-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #666;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #4285f4;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(66, 133, 244, 0.2);
+        }
+
+        .captcha-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .captcha-input {
+            flex: 1;
+        }
+
+        .captcha-image {
+            width: 120px;
+            height: 46px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            user-select: none;
+            letter-spacing: 2px;
+        }
+
+        .captcha-image:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .password-requirements {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4285f4, #34a853);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(66, 133, 244, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-footer {
+            display: flex;          /* 启用弹性布局 */
+            justify-content: center; /* 水平居中 */
+            align-items: center;    /* 垂直居中 */
+            gap: 15px;              /* 元素间距 */
+            flex-wrap: wrap;        /* 允许换行 */
+            margin-top: 20px; /* 减小底部链接与表单的间距 */
+        }
+
+        .form-footer a {
+            color: #4285f4;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .footer-separator {
+            color: #ccc;            /* 浅灰色分隔符 */
+            font-size: 14px;
+        }
+
+        .form-footer a:hover {
+            color: #3367d6;
+            text-decoration: underline;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+        .form-container {
+            margin-top: -20px; /* 负边距使整个表单上移 */
+        }
+        .error-message {
+            color: #ea4335;
+            font-size: 13px;
+            margin-top: 2px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            min-height: 18px;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        .success-message {
+            color: #34a853;
+            font-size: 14px;
+            text-align: center;
+            padding: 12px;
+            background: rgba(52, 168, 83, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .success-message.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                max-width: 500px;
+                min-height: auto;
+            }
+            
+            .illustration-section {
+                min-height: 200px;
+                padding: 20px;
+            }
+            
+            .form-section {
+                padding: 30px 25px;
+                max-height: none;
+            }
+            
+            .header {
+                padding: 0 20px;
+            }
+
+            .form-title {
+                font-size: 28px;
+                margin-bottom: 10px; /* 减小标题与表单的间距 */
+            }
+            }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="公司Logo" class="logo-icon">
+            <span>聆析智服</span>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 插图区域 -->
+        <div class="illustration-section">
+            <div class="illustration">
+                <div class="robot">🤖</div>
+                <div class="floating-element element-1"></div>
+                <div class="floating-element element-2"></div>
+                <div class="floating-element element-3"></div>
+                <div class="floating-element element-4"></div>
+            </div>
+        </div>
+
+        <!-- 表单区域 -->
+        <div class="form-section">
+            <!-- 登录表单 -->
+            <div class="form-container" id="loginForm" data-field="login">
+                <h2 class="form-title">登录授权</h2>
+                <div class="success-message" id="loginSuccessMessage"></div>
+                <form>
+                    <div class="form-group" data-field="username">
+                        <label class="form-label">*账号</label>
+                        <input type="text" class="form-input" placeholder="请输入账号">
+                        <div class="error-message">请输入有效的账号</div>
+                    </div>
+                    
+                    <div class="form-group" data-field="password">
+                        <label class="form-label">*账户密码</label>
+                        <input type="password" class="form-input" placeholder="请输入密码">
+                        <div class="error-message">请输入密码</div>
+                    </div>
+                    
+                    <div class="form-group" data-field="captcha">
+                        <label class="form-label">*验证码</label>
+                        <div class="captcha-group">
+                            <input type="text" class="form-input captcha-input" placeholder="请输入验证码">
+                            <div class="captcha-image" id="captchaImage">4mWC</div>
+                        </div>
+                        <div class="error-message">请输入正确的验证码</div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span>🔓</span> 立即登录
+                    </button>
+                </form>
+
+                <div class="form-footer">
+                    <span class="footer-link">
+                        没有账号？ <a href="#" id="showRegister">立即注册</a>
+                    </span>
+                    <span class="footer-separator"> | </span>
+                    <span class="footer-link">
+                        忘记密码？ <a href="#" id="forgotPassword">找回密码</a>
+                    </span>
+                </div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div class="form-container hidden" id="registerForm" data-field="register">
+                <h2 class="form-title">注册账号</h2>
+                <form>
+                    <div class="form-group" data-field="username">
+                        <label class="form-label">*账号</label>
+                        <input type="text" class="form-input" placeholder="请输入账号">
+                        <div class="error-message">请输入有效的账号</div>
+                    </div>
+                    
+                    <div class="form-group" data-field="password">
+                        <label class="form-label">*密码</label>
+                        <input type="password" class="form-input" placeholder="请输入密码">
+                        <div class="password-requirements">格式：英文大小写字母、数字、符号组合，长度6-18位</div>
+                        <div class="error-message">密码格式不正确</div>
+                    </div>
+                    
+                    <div class="form-group" data-field="confirm_password">
+                        <label class="form-label">*确认密码</label>
+                        <input type="password" class="form-input" placeholder="请再次输入密码">
+                        <div class="error-message">两次密码输入不一致</div>
+                    </div>
+                    
+                    <div class="form-group" data-field="captcha">
+                        <label class="form-label">*验证码</label>
+                        <div class="captcha-group">
+                            <input type="text" class="form-input captcha-input" placeholder="请输入验证码">
+                            <div class="captcha-image" id="captchaImageRegister">3mWC</div>
+                        </div>
+                        <div class="error-message">请输入正确的验证码</div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span>📝</span> 立即注册
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    已有账号？ <a href="#" id="showLogin">立即登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

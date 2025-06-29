@@ -1,0 +1,200 @@
+/* sidebar.css - 侧边栏独立样式，参考 admin_index.html */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    z-index: 1001;
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #333;
+    padding: 20px 0 20px 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #dee2e6;
+    box-sizing: border-box;
+    transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
+    will-change: width;
+}
+.sidebar.sidebar-collapsed {
+    width: 60px;
+}
+.logo {
+    display: flex;
+    align-items: center;
+}
+.logo-icon {
+    width: 36px;
+    height: 36px;
+    margin-right: 12px;
+}
+.logo-text {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    transition: opacity 0.2s;
+}
+.logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 0 20px;
+    margin-bottom: 40px;
+    height: 60px;
+}
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.nav-item {
+    margin-bottom: 8px;
+}
+.nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    color: #666;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+.nav-link:hover, .nav-link.active {
+    background-color: rgba(66, 133, 244, 0.1);
+    color: #4285f4;
+}
+.user-info {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+}
+.user-profile {
+    display: flex;
+    align-items: center;
+}
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+    background: #eee;
+}
+.user-name {
+    font-size: 14px;
+    color: #333;
+}
+.user-email {
+    font-size: 12px;
+    color: #666;
+}
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+}
+
+/* 展开/收起按钮样式 - 蓝色圆形原始风格 */
+.sidebar-toggle,
+.sidebar-toggle-collapsed {
+    width: 40px;
+    height: 40px;
+    margin-left: 8px;
+    background: #4285f4;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(66,133,244,0.15);
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+}
+.sidebar-toggle:hover {
+    background: #3367d6;
+    color: #fff;
+}
+
+.sidebar-toggle-collapsed {
+    background: #f5f5f5;
+    color: #666;
+    font-size: 22px;
+    display: none;
+}
+.sidebar-toggle-collapsed:hover {
+    background: #e0e0e0;
+    color: #4285f4;
+}
+
+/* 主内容区右侧滚动，留出侧边栏宽度 */
+.main-content {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    margin-left: 0;
+}
+
+/* 兼容中间栏（如有service-center） */
+.service-center {
+    width: 320px;
+    flex-shrink: 0;
+    margin-left: 0;
+}
+
+.container {
+    display: flex;
+    margin-left: 280px;
+    transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.sidebar.sidebar-collapsed ~ .container {
+    margin-left: 60px;
+}
+
+/* 收缩时隐藏文字，仅显示icon（可选，需配合HTML结构） */
+.sidebar.sidebar-collapsed .logo-text,
+.sidebar.sidebar-collapsed .nav-link span,
+.sidebar.sidebar-collapsed .user-details {
+    display: none;
+}
+.sidebar.sidebar-collapsed .logo-icon,
+.sidebar.sidebar-collapsed .nav-link {
+    justify-content: center;
+}
+
+.sidebar.sidebar-collapsed .logo-text,
+.sidebar.sidebar-collapsed .sidebar-toggle {
+    display: none !important;
+}
+
+.sidebar.sidebar-collapsed ~ .sidebar-toggle-collapsed {
+    display: flex !important;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+    }
+    .sidebar-toggle {
+        right: -36px;
+        top: 18px;
+    }
+    .container {
+        margin-left: 0;
+    }
+    .main-content, .service-center {
+        margin-left: 0;
+    }
+} 

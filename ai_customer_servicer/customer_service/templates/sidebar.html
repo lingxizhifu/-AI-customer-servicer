@@ -1,0 +1,40 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'sidebar.css' %}">
+<div class="sidebar" id="sidebar">
+    <div class="logo-row">
+        <div class="logo">
+            <img src="{% static 'images/logo.png' %}" alt="logo" class="logo-icon">
+            <div class="logo-text">聆析智服</div>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" title="收起侧边栏">☰</button>
+        <button class="sidebar-toggle-collapsed" id="sidebarToggleCollapsed" title="展开侧边栏" style="display:none;">&gt;</button>
+    </div>
+    <nav class="nav-menu">
+        <div class="nav-item">
+            <a href="{% url 'admin_index' %}" class="nav-link {% if active_page == 'home' %}active{% endif %}">🏠 首页</a>
+        </div>
+        <div class="nav-item">
+            <a href="{% url 'index' %}" class="nav-link {% if active_page == 'service' %}active{% endif %}">🎧 客服中心</a>
+        </div>
+        <div class="nav-item">
+            <a href="{% url 'user_index' %}" class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 用户</a>
+        </div>
+        <div class="nav-item">
+            <a href="{% url 'logout' %}" class="nav-link">📕 退出</a>
+        </div>
+    </nav>
+    <div class="user-info">
+        <div class="user-profile">
+            {% if user.profile.avatar %}
+                <img src="{{ user.profile.avatar.url }}" class="user-avatar" style="width:40px;height:40px;border-radius:50%;">
+            {% else %}
+                <img src="{% static 'default_avatar.png' %}" class="user-avatar" style="width:40px;height:40px;border-radius:50%;">
+            {% endif %}
+            <div class="user-details">
+                <div class="user-name">{{ user.profile.nickname|default:user.username }}</div>
+                <div class="user-email">{{ user.email }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'sidebar.js' %}"></script> 

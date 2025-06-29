@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聆析智服 - AI客服系统</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'sidebar.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"></script>
+    <script>
+    window.CSRF_TOKEN = Cookies.get('csrftoken');
+    </script>
+</head>
+<body>
+    <div class="container">
+        {% include 'sidebar.html' with active_page='service' %}
+        <div class="service-center" id="serviceCenter">
+            <div class="action-section">
+                <button class="action-btn" onclick="startNewChat()">
+                    <span>✏️</span>
+                    <span>新聊天</span>
+                </button>
+                <button class="action-btn" onclick="searchChats()">
+                    <span>🔍</span>
+                    <span>查询聊天</span>
+                </button>
+                <button class="action-btn" onclick="clearAllChats()">
+                    <span>🗑️</span>
+                    <span>清空聊天</span>
+                </button>
+            </div>
+            <!-- 聊天历史区域 - 动态加载 -->
+            <div class="chat-history" id="chatHistory">
+                <!-- 这里将通过JavaScript动态加载聊天历史 -->
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="main-container">
+                <!-- 聊天区域 -->
+                <div class="chat-area">
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- 欢迎气泡由JS动态插入，包含插图、标题、FAQ分组、描述、主FAQ按钮组 -->
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="input-container">
+                            <div class="input-actions">
+                                <button class="input-btn" title="附加文件">➕</button>
+                            </div>
+                            <textarea 
+                                class="message-input" 
+                                id="messageInput" 
+                                placeholder="请输入您的问题..."
+                                rows="1"
+                            ></textarea>
+                            <div class="input-actions">
+                                <button class="input-btn" title="语音输入">🎤</button>
+                                <button class="send-button" id="sendButton" onclick="sendMessage()" title="发送消息">↗</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'script.js' %}"></script>
+</body>
+</html>

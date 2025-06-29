@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -23,8 +24,8 @@
             height: 100vh;
         }
 
-        /* 左侧导航栏 */
-        .sidebar {
+        /* ===== 侧边栏相关样式全部注释 ===== */
+        /* .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
             color: #333;
@@ -32,39 +33,39 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid #dee2e6;
-        }
+        } */
 
-        .logo {
+        /* .logo {
             display: flex;
             align-items: center;
             margin-bottom: 40px;
-        }
+        } */
 
-        .logo-icon {
+        /* .logo-icon {
             width: 36px;
             height: 36px;
-            background-image: url('./static/ai-icon.png');
+            background-image: url('{% static "ai-icon.png" %}');
             background-size: cover;
             background-position: center;
             border-radius: 8px;
             margin-right: 12px;
-        }
+        } */
 
-        .logo-text {
+        /* .logo-text {
             font-size: 20px;
             font-weight: 600;
             color: #333;
-        }
+        } */
 
-        .nav-menu {
+        /* .nav-menu {
             list-style: none;
-        }
+        } */
 
-        .nav-item {
+        /* .nav-item {
             margin-bottom: 8px;
-        }
+        } */
 
-        .nav-link {
+        /* .nav-link {
             display: flex;
             align-items: center;
             padding: 12px 16px;
@@ -73,49 +74,64 @@
             border-radius: 8px;
             transition: all 0.3s ease;
             font-size: 14px;
-        }
+        } */
 
-        .nav-link:hover, .nav-link.active {
+        /* .nav-link:hover, .nav-link.active {
             background-color: rgba(66, 133, 244, 0.1);
             color: #4285f4;
-        }
+        } */
 
-        .nav-link::before {
+        /* .nav-link::before {
             content: '';
             width: 20px;
             height: 20px;
             margin-right: 12px;
             opacity: 0.7;
-        }
+        } */
 
-        .user-info {
+        /* .user-info {
             margin-top: auto;
             padding-top: 20px;
             border-top: 1px solid #dee2e6;
             display: flex;
             align-items: center;
-        }
+        } */
 
-        /* 修改1: 用户头像 - 使用您的图片 */
-        .user-avatar {
+        /* .user-avatar {
             width: 32px;
             height: 32px;
-            background-image: url('./static/user-avatar.png');
+            background-image: url('{% static "user-avatar.png" %}');
             background-size: cover;
             background-position: center;
             border-radius: 6px;
             margin-right: 12px;
-        }
+        } */
 
-        .user-name {
+        /* .user-name {
             font-size: 14px;
             color: #333;
-        }
+        } */
 
-        .user-email {
+        /* .user-email {
             font-size: 12px;
             color: #666;
+        } */
+
+        /* ===== 响应式 sidebar 相关样式全部注释 ===== */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            /* .sidebar {
+                width: 100%;
+                height: auto;
+            } */
+            .featured-cards, .agents-grid {
+                grid-template-columns: 1fr;
+            }
         }
+
+        /* ===== 只保留主内容区和卡片相关样式 ===== */
 
         /* 主内容区域 */
         .main-content {
@@ -354,60 +370,11 @@
         .more-link:hover {
             color: #2196F3;
         }
-
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-            }
-            
-            .featured-cards, .agents-grid {
-                grid-template-columns: 1fr;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 左侧导航栏 -->
-        <div class="sidebar">
-            <div class="logo">
-                <div class="logo-icon"></div>
-                <div class="logo-text">聆析智服</div>
-            </div>
-            
-            <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="#" class="nav-link active">🏠 首页</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">🎧 客服中心</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">💬 消息</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">👤 用户</a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">🚪 退出</a>
-                </li>
-            </ul>
-
-            <div class="user-info">
-                <div class="user-avatar"></div>
-                <div>
-                    <div class="user-name">用户名</div>
-                    <div class="user-email">925496629@qq.com</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 主内容区域 -->
+        {% include 'sidebar.html' with active_page='admin' %}
         <div class="main-content">
             <div class="header">
                 <h1>AI应用</h1>
@@ -419,13 +386,13 @@
                 <div class="featured-cards">
                     <div class="featured-card">
                         <div class="card-header">
-                            <div class="card-avatar" style="background-image: url('./static/ai-icon.png'); background-size: cover; background-position: center;"></div>
+                            <div class="card-avatar" style="background-image: url({% static 'ai-icon.png' %}); background-size: cover; background-position: center;"></div>
                             <div class="card-info">
-                                <h3>聆析客服</h3>
+                                <h3>聆析智服</h3>
                                 <p>高效电商平台、随时随地响应，辅助客服...</p>
                             </div>
                         </div>
-                        <a href="#" class="more-link">了解更多 →</a>
+                        <a href="{% url 'index' %}" class="more-link">了解更多 →</a>
                     </div>
 
                     <div class="featured-card">
@@ -581,7 +548,10 @@
             const navLinks = document.querySelectorAll('.nav-link');
             navLinks.forEach(link => {
                 link.addEventListener('click', function(e) {
-                    e.preventDefault();
+                    // 只阻止 href="#" 的跳转
+                    if (this.getAttribute('href') === '#') {
+                        e.preventDefault();
+                    }
                     navLinks.forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 });
