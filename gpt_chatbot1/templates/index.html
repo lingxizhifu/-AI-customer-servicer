@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+    <!-- 在 <div class="mobile-overlay" id="mobileOverlay"></div> 之前添加 -->
+<button class="mobile-nav-btn" id="mobileNavBtn" onclick="toggleMobileMenu()">
+    <div class="hamburger-icon">
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+        <div class="hamburger-line"></div>
+    </div>
+</button>
     <!-- 移动端遮罩层 -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
