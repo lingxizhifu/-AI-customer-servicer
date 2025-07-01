@@ -1,0 +1,165 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ知识库管理模块</title>
+    <link rel="stylesheet" href="{% static 'faq_management.css' %}">
+</head>
+<body>
+    {% include 'sidebar.html' with active_page='faq' %}
+    <div class="container" id="main-container">
+        <div class="main-content">
+            <div class="page-header">
+                <div class="header-left">
+                    <span class="header-icon">📚</span>
+                    <h1 class="header-title">FAQ知识库管理模块</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">
+                        📤 Export
+                    </button>
+                    <button class="btn btn-primary">
+                        ➕ 添加FAQ
+                    </button>
+                </div>
+            </div>
+
+            <!-- 搜索和筛选区域 -->
+            <div class="search-section">
+                <div class="search-row">
+                    <div class="search-group">
+                        <label class="search-label">关键词</label>
+                        <input type="text" class="search-input" placeholder="搜索问题或答案...">
+                    </div>
+                    <div class="search-group">
+                        <label class="search-label">分类筛选</label>
+                        <select class="search-select">
+                            <option value="">全部分类</option>
+                            <option value="register">注册问题</option>
+                            <option value="payment">支付问题</option>
+                            <option value="account">账户问题</option>
+                            <option value="technical">技术问题</option>
+                            <option value="other">其他问题</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <label class="search-label">状态筛选</label>
+                        <select class="search-select">
+                            <option value="">全部状态</option>
+                            <option value="active">启用</option>
+                            <option value="inactive">禁用</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <label class="search-label">&nbsp;</label>
+                        <button class="btn btn-primary">🔍 搜索</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ表格 -->
+            <div class="faq-table-container">
+                <div class="table-header">
+                    <div class="table-title">FAQ列表</div>
+                    <div class="table-stats">共 <span>12</span> 条记录</div>
+                </div>
+                
+                <table class="faq-table">
+                    <thead>
+                        <tr>
+                            <th>问题</th>
+                            <th>分类</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>更新时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">如何注册账户？</div>
+                                <div style="font-size: 12px; color: #64748b;">点击注册按钮，填写基本信息即可完成注册...</div>
+                            </td>
+                            <td><span class="category-tag">注册问题</span></td>
+                            <td><span class="status-badge status-active">●启用</span></td>
+                            <td>2024-01-15</td>
+                            <td>2024-06-20</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" title="编辑">✏️</button>
+                                    <button class="btn-icon btn-delete" title="删除">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">支付失败怎么办？</div>
+                                <div style="font-size: 12px; color: #64748b;">请检查银行卡余额，或联系银行确认...</div>
+                            </td>
+                            <td><span class="category-tag">支付问题</span></td>
+                            <td><span class="status-badge status-active">●启用</span></td>
+                            <td>2024-01-16</td>
+                            <td>2024-06-18</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" title="编辑">✏️</button>
+                                    <button class="btn-icon btn-delete" title="删除">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">忘记密码如何找回？</div>
+                                <div style="font-size: 12px; color: #64748b;">点击忘记密码，输入邮箱获取重置链接...</div>
+                            </td>
+                            <td><span class="category-tag">账户问题</span></td>
+                            <td><span class="status-badge status-inactive">●禁用</span></td>
+                            <td>2024-01-17</td>
+                            <td>2024-06-15</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" title="编辑">✏️</button>
+                                    <button class="btn-icon btn-delete" title="删除">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div style="font-weight: 500; margin-bottom: 4px;">系统响应慢怎么办？</div>
+                                <div style="font-size: 12px; color: #64748b;">请检查网络连接，清除浏览器缓存...</div>
+                            </td>
+                            <td><span class="category-tag">技术问题</span></td>
+                            <td><span class="status-badge status-active">●启用</span></td>
+                            <td>2024-01-18</td>
+                            <td>2024-06-12</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon btn-edit" title="编辑">✏️</button>
+                                    <button class="btn-icon btn-delete" title="删除">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 分页 -->
+                <div class="pagination">
+                    <div class="pagination-info">
+                        显示第 1-4 条，共 12 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="pagination-btn" disabled>上一页</button>
+                        <button class="pagination-btn active">1</button>
+                        <button class="pagination-btn">2</button>
+                        <button class="pagination-btn">3</button>
+                        <button class="pagination-btn">下一页</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

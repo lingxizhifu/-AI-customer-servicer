@@ -1,0 +1,272 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统概览模块</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="{% static 'overview_management.css' %}">
+</head>
+<body>
+    {% include 'sidebar.html' with active_page='overview' %}
+    <div class="container" id="main-container">
+        <div class="main-content">
+            <div class="header">
+                <span class="header-icon"></span>
+                <h1 class="header-title">系统概览模块</h1>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">总使用次数</div>
+                        <div class="stat-icon blue">
+                            <img src="{% static 'Images/usage-icon.png' %}" alt="使用次数" onerror="this.style.display='none'; this.parentElement.innerHTML='💡';">
+                        </div>
+                    </div>
+                    <div class="stat-value">1,350</div>
+                    <div class="stat-change">vs 昨天</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">今日对话量</div>
+                        <div class="stat-icon green">
+                            <img src="{% static 'Images/chat-icon.png' %}" alt="对话量" onerror="this.style.display='none'; this.parentElement.innerHTML='💬';">
+                        </div>
+                    </div>
+                    <div class="stat-value">234</div>
+                    <div class="stat-change negative">13%↓</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">问题解决率</div>
+                        <div class="stat-icon orange">
+                            <img src="{% static 'Images/solve-icon.png' %}" alt="解决率" onerror="this.style.display='none'; this.parentElement.innerHTML='✅';">
+                        </div>
+                    </div>
+                    <div class="stat-value">80%</div>
+                    <div class="stat-change">vs 昨天</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">今日投诉</div>
+                        <div class="stat-icon red">
+                            <img src="{% static 'Images/complaint-icon.png' %}" alt="投诉" onerror="this.style.display='none'; this.parentElement.innerHTML='⚠️';">
+                        </div>
+                    </div>
+                    <div class="stat-value">5</div>
+                    <div class="stat-change positive">25%↑</div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="charts-grid">
+                <!-- 用户人数统计 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <span class="chart-title-icon">📈</span>
+                            用户人数统计
+                        </div>
+                        <div class="chart-menu">
+                            <button class="menu-trigger" onclick="toggleDropdown('userChart')">⋯</button>
+                            <div class="dropdown" id="userChartDropdown">
+                                <div class="dropdown-header">统计周期</div>
+                                <div class="dropdown-item active" onclick="changePeriod('userChart', '7天', this)">7天</div>
+                                <div class="dropdown-item" onclick="changePeriod('userChart', '15天', this)">15天</div>
+                                <div class="dropdown-item" onclick="changePeriod('userChart', '30天', this)">30天</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="userChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- API使用统计 -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <span class="chart-title-icon">🔌</span>
+                            API使用统计
+                        </div>
+                        <div class="chart-menu">
+                            <button class="menu-trigger" onclick="toggleDropdown('apiChart')">⋯</button>
+                            <div class="dropdown" id="apiChartDropdown">
+                                <div class="dropdown-header">统计周期</div>
+                                <div class="dropdown-item active" onclick="changePeriod('apiChart', '7天', this)">7天</div>
+                                <div class="dropdown-item" onclick="changePeriod('apiChart', '15天', this)">15天</div>
+                                <div class="dropdown-item" onclick="changePeriod('apiChart', '30天', this)">30天</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="apiChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 用户人数折线图
+        const userCtx = document.getElementById('userChart').getContext('2d');
+        const userChart = new Chart(userCtx, {
+            type: 'line',
+            data: {
+                labels: ['6.27', '6.28', '6.29', '6.30', '7.1', '7.2', '7.3'],
+                datasets: [{
+                    label: 'user',
+                    data: [50, 65, 80, 120, 70, 150, 85],
+                    borderColor: '#4285f4',
+                    backgroundColor: 'rgba(66, 133, 244, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 160,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // API使用统计柱状图
+        const apiCtx = document.getElementById('apiChart').getContext('2d');
+        const apiChart = new Chart(apiCtx, {
+            type: 'bar',
+            data: {
+                labels: ['6.27', '6.28', '6.29', '6.30', '7.1', '7.2', '7.3'],
+                datasets: [{
+                    label: 'api',
+                    data: [200, 300, 450, 400, 350, 500, 380],
+                    backgroundColor: 'rgba(255, 193, 7, 0.8)',
+                    borderColor: '#ffc107',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1000,
+                        ticks: {
+                            stepSize: 200
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 下拉菜单功能
+        function toggleDropdown(chartId) {
+            const dropdown = document.getElementById(chartId + 'Dropdown');
+            dropdown.classList.toggle('show');
+            
+            // 点击其他地方关闭下拉菜单
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.chart-menu')) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // 切换统计周期
+        function changePeriod(chartId, period, element) {
+            // 更新激活状态
+            const dropdownItems = element.parentElement.querySelectorAll('.dropdown-item');
+            dropdownItems.forEach(item => item.classList.remove('active'));
+            element.classList.add('active');
+            
+            // 关闭下拉菜单
+            const dropdown = document.getElementById(chartId + 'Dropdown');
+            dropdown.classList.remove('show');
+            
+            // 这里可以添加更新图表数据的逻辑
+            console.log(`切换${chartId}的统计周期为: ${period}`);
+            
+            // 示例：更新图表数据
+            if (chartId === 'userChart') {
+                updateUserChart(period);
+            } else if (chartId === 'apiChart') {
+                updateApiChart(period);
+            }
+        }
+
+        // 更新用户图表数据
+        function updateUserChart(period) {
+            let newData, newLabels;
+            
+            if (period === '7天') {
+                newLabels = ['6.27', '6.28', '6.29', '6.30', '7.1', '7.2', '7.3'];
+                newData = [50, 65, 80, 120, 70, 150, 85];
+            } else if (period === '15天') {
+                newLabels = ['6.19', '6.21', '6.23', '6.25', '6.27', '6.29', '7.1', '7.3'];
+                newData = [40, 55, 70, 100, 65, 140, 120, 95];
+            } else {
+                newLabels = ['6.3', '6.8', '6.13', '6.18', '6.23', '6.28', '7.3'];
+                newData = [30, 45, 60, 90, 75, 130, 110];
+            }
+            
+            userChart.data.labels = newLabels;
+            userChart.data.datasets[0].data = newData;
+            userChart.update();
+        }
+
+        // 更新API图表数据
+        function updateApiChart(period) {
+            let newData, newLabels;
+            
+            if (period === '7天') {
+                newLabels = ['6.27', '6.28', '6.29', '6.30', '7.1', '7.2', '7.3'];
+                newData = [200, 300, 450, 400, 350, 500, 380];
+            } else if (period === '15天') {
+                newLabels = ['6.19', '6.21', '6.23', '6.25', '6.27', '6.29', '7.1', '7.3'];
+                newData = [180, 280, 420, 380, 320, 480, 360, 340];
+            } else {
+                newLabels = ['6.3', '6.8', '6.13', '6.18', '6.23', '6.28', '7.3'];
+                newData = [150, 250, 380, 350, 300, 450, 320];
+            }
+            
+            apiChart.data.labels = newLabels;
+            apiChart.data.datasets[0].data = newData;
+            apiChart.update();
+        }
+    </script>
+</body>
+</html>

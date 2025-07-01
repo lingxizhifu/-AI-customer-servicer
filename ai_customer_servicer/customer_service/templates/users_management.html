@@ -1,0 +1,167 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户权限管理系统</title>
+    <link rel="stylesheet" href="{% static 'users_management.css' %}">
+</head>
+<body>
+    {% include 'sidebar.html' with active_page='users' %}
+    <div class="container" id="main-container">
+        <div class="main-content">
+            <!-- 内容区域 -->
+            <div class="content">
+                <div class="page-header">
+                    <h1 class="page-title">
+                        <div class="title-icon">📋</div>
+                        用户与权限管理模块
+                    </h1>
+                </div>
+
+                <div class="action-bar">
+                    <div class="left-section">
+                        <button class="btn btn-primary">+ 添加管理员</button>
+                        <button class="btn btn-secondary">导出</button>
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" placeholder="搜索用户...">
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary">批量操作</button>
+                        <button class="btn btn-primary">权限配置</button>
+                    </div>
+                </div>
+
+                <!-- 用户表格 -->
+                <div class="user-table">
+                    <div class="table-header">
+                        <div>头像</div>
+                        <div>用户名</div>
+                        <div>角色</div>
+                        <div>登录时间</div>
+                        <div>管理权限</div>
+                        <div>状态</div>
+                        <div>操作</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div><div class="user-avatar-table" style="background: #FF6B6B;">张</div></div>
+                        <div>zhangSan</div>
+                        <div><span class="role-text">超级管理员</span></div>
+                        <div>2024-06-26 09:13</div>
+                        <div>全权限</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row highlight">
+                        <div><div class="user-avatar-table" style="background: #4ECDC4;">李</div></div>
+                        <div>liSiMing</div>
+                        <div><span class="role-text">编辑员</span></div>
+                        <div>2024-06-26 10:17</div>
+                        <div>可编辑</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div><div class="user-avatar-table" style="background: #45B7D1;">王</div></div>
+                        <div>wangFive</div>
+                        <div><span class="role-text">查看员</span></div>
+                        <div>2024-06-25 16:32</div>
+                        <div>只读</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row highlight">
+                        <div><div class="user-avatar-table" style="background: #96CEB4;">赵</div></div>
+                        <div>zhaoLiu</div>
+                        <div><span class="role-text">编辑员</span></div>
+                        <div>2024-06-24 14:23</div>
+                        <div>可编辑</div>
+                        <div class="status-inactive">离线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div><div class="user-avatar-table" style="background: #FECA57;">孙</div></div>
+                        <div>sunQi</div>
+                        <div><span class="role-text">查看员</span></div>
+                        <div>2024-06-23 11:45</div>
+                        <div>只读</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row highlight">
+                        <div><div class="user-avatar-table" style="background: #FF9FF3;">周</div></div>
+                        <div>zhouBa</div>
+                        <div><span class="role-text">超级管理员</span></div>
+                        <div>2024-06-22 09:18</div>
+                        <div>全权限</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row">
+                        <div><div class="user-avatar-table" style="background: #54A0FF;">吴</div></div>
+                        <div>wuJiu</div>
+                        <div><span class="role-text">编辑员</span></div>
+                        <div>2024-06-21 15:20</div>
+                        <div>可编辑</div>
+                        <div class="status-inactive">离线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+
+                    <div class="table-row highlight">
+                        <div><div class="user-avatar-table" style="background: #5F27CD;">郑</div></div>
+                        <div>zhengShi</div>
+                        <div><span class="role-text">查看员</span></div>
+                        <div>2024-06-20 13:42</div>
+                        <div>只读</div>
+                        <div class="status-active">在线</div>
+                        <div class="action-buttons">
+                            <button class="action-icon edit-icon" title="编辑">✏️</button>
+                            <button class="action-icon delete-icon" title="删除">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分页 -->
+                <div class="pagination">
+                    <button>上一页</button>
+                    <button class="active">1</button>
+                    <button>2</button>
+                    <button>3</button>
+                    <button>下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
