@@ -10,25 +10,40 @@
         <button class="sidebar-toggle-collapsed" id="sidebarToggleCollapsed" title="展开侧边栏" style="display:none;">&gt;</button>
     </div>
     <nav class="nav-menu">
-        <div class="nav-item">
-            <a href="{% url 'admin_index' %}" class="nav-link {% if active_page == 'home' %}active{% endif %}">🏠 首页</a>
-        </div>
-        <div class="nav-item">
-            <a href="{% url 'index' %}" class="nav-link {% if active_page == 'service' %}active{% endif %}">🎧 客服中心</a>
-        </div>
-        <div class="nav-item">
-            <a href="{% url 'user_index' %}" class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 用户</a>
-        </div>
-        <div class="nav-item">
-            <a href="{% url 'logout' %}" class="nav-link">📕 退出</a>
-        </div>
+        {% if user.is_superuser %}
+            <div class="nav-item">
+                <a href="{% url 'overview_management' %}" class="nav-link {% if active_page == 'overview' %}active{% endif %}">📊 数据总览</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'faq_management' %}" class="nav-link {% if active_page == 'faq' %}active{% endif %}">📦 FAQ管理</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'users_management' %}" class="nav-link {% if active_page == 'users' %}active{% endif %}">👤 用户管理</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'logout' %}" class="nav-link">🚪 退出</a>
+            </div>
+        {% else %}
+            <div class="nav-item">
+                <a href="{% url 'admin_index' %}" class="nav-link {% if active_page == 'home' %}active{% endif %}">🏠 首页</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'index' %}" class="nav-link {% if active_page == 'service' %}active{% endif %}">🎧 客服中心</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'user_index' %}" class="nav-link {% if active_page == 'profile' %}active{% endif %}">👤 用户</a>
+            </div>
+            <div class="nav-item">
+                <a href="{% url 'logout' %}" class="nav-link">📕 退出</a>
+            </div>
+        {% endif %}
     </nav>
     <div class="user-info">
         <div class="user-profile">
             {% if user.profile.avatar %}
                 <img src="{{ user.profile.avatar.url }}" class="user-avatar" style="width:40px;height:40px;border-radius:50%;">
             {% else %}
-                <img src="{% static 'default_avatar.png' %}" class="user-avatar" style="width:40px;height:40px;border-radius:50%;">
+                <img src="{% static 'images/default_avatar.png' %}" class="user-avatar" style="width:40px;height:40px;border-radius:50%;">
             {% endif %}
             <div class="user-details">
                 <div class="user-name">{{ user.profile.nickname|default:user.username }}</div>

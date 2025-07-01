@@ -95,9 +95,9 @@ WSGI_APPLICATION = "ai_customer_servicer.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ai_chat_db',      # 你的数据库名
+        'NAME': 'ai_customer_servicer',      # 你的数据库名
         'USER': 'root',           # 你的MySQL用户名
-        'PASSWORD': '123456',   # 你的MySQL密码
+        'PASSWORD': 'Awc5624/',   # 你的MySQL密码
         'HOST': 'localhost',                 # 或远程主机
         'PORT': '3306',
         'OPTIONS': {

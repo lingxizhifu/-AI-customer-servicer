@@ -24,23 +24,25 @@
     align-items: center;
 }
 .logo-icon {
-    width: 36px;
-    height: 36px;
-    margin-right: 12px;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: contain;
+    margin-right: 0;
 }
 .logo-text {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
-    color: #333;
-    transition: opacity 0.2s;
+    margin-left: 10px;
+    white-space: nowrap;
 }
 .logo-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0 20px 0 20px;
-    margin-bottom: 40px;
-    height: 60px;
+    justify-content: center;
+    height: 64px;
+    position: relative;
+    padding: 0 8px;
 }
 .nav-menu {
     list-style: none;
@@ -101,38 +103,46 @@
     }
 }
 
-/* 展开/收起按钮样式 - 蓝色圆形原始风格 */
+/* 优化logo和展开按钮布局 */
 .sidebar-toggle,
 .sidebar-toggle-collapsed {
-    width: 40px;
-    height: 40px;
-    margin-left: 8px;
-    background: #4285f4;
-    color: #fff;
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    background: none;
     border: none;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(66,133,244,0.15);
+    font-size: 20px;
     cursor: pointer;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s, color 0.2s;
+    padding: 0 4px;
+    color: #1976d2;
+    transition: background 0.2s;
 }
-.sidebar-toggle:hover {
-    background: #3367d6;
-    color: #fff;
+.sidebar-toggle:hover,
+.sidebar-toggle-collapsed:hover {
+    background: #f0f4fa;
+    border-radius: 50%;
 }
-
-.sidebar-toggle-collapsed {
-    background: #f5f5f5;
-    color: #666;
-    font-size: 22px;
+/* 收起时隐藏logo文字，只显示icon */
+.sidebar.collapsed .logo-text {
     display: none;
 }
-.sidebar-toggle-collapsed:hover {
-    background: #e0e0e0;
-    color: #4285f4;
+/* 收起时logo居中 */
+.sidebar.collapsed .logo-row {
+    justify-content: center;
+}
+/* 收起时展开按钮紧挨logo */
+.sidebar.collapsed .sidebar-toggle-collapsed {
+    right: 8px;
+}
+/* 保证侧栏宽度收起/展开时合适 */
+.sidebar {
+    width: 200px;
+    transition: width 0.2s;
+}
+.sidebar.collapsed {
+    width: 64px;
 }
 
 /* 主内容区右侧滚动，留出侧边栏宽度 */

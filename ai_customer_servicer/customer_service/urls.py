@@ -9,6 +9,9 @@ from .views import admin_index
 from .views import user_profile
 from .views import user_index
 from .views import user_avatar_upload
+from .views import overview_management
+from .views import users_management
+from .views import faq_management
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -37,6 +40,9 @@ urlpatterns = [
     path('api/user/profile/', user_profile, name='user_profile'),
     path('user_index/', user_index, name='user_index'),
     path('api/user/avatar/', user_avatar_upload, name='user_avatar_upload'),
+    path('overview_management/', overview_management, name='overview_management'),
+    path('users_management/', users_management, name='users_management'),
+    path('faq_management/', faq_management, name='faq_management'),
 ]
 
 if settings.DEBUG:

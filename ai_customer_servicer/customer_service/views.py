@@ -179,7 +179,7 @@ def login_submit(request):
     user = authenticate(request, username=data.get('username'), password=data.get('password'))
     if user is not None:
         login(request, user)
-        return Response({'success': True, 'message': '登录成功！即将跳转到主页面...'})
+        return Response({'success': True, 'message': '登录成功！即将跳转到主页面...', 'is_superuser': user.is_superuser})
     else:
         return Response({'success': False, 'message': '用户名或密码错误'})
 
@@ -285,5 +285,14 @@ def user_avatar_upload(request):
     profile.avatar = avatar_file
     profile.save()
     return Response({'success': True, 'avatar': profile.avatar.url})
+
+def overview_management(request):
+    return render(request, 'overview_management.html')
+
+def users_management(request):
+    return render(request, 'users_management.html')
+
+def faq_management(request):
+    return render(request, 'faq_management.html')
 
 # Create your views here.

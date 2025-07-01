@@ -155,7 +155,11 @@ class AuthPage {
                 if (data.success) {
                     this.showSuccessMessage(data.message || '登录成功！');
                     setTimeout(() => {
-                        window.location.href = '/chat/';
+                        if (data.is_superuser) {
+                            window.location.href = '/overview_management/';
+                        } else {
+                            window.location.href = '/chat/';
+                        }
                     }, 1500);
                 } else {
                     if (data.errors) {
