@@ -21,6 +21,7 @@ from django.http import JsonResponse
 import random
 from django.contrib.auth.decorators import login_required
 from rest_framework.parsers import MultiPartParser, FormParser
+from customer_service.rag_service import get_rag_service
 
 @login_required(login_url='/login/')
 def index(request):
@@ -93,8 +94,43 @@ def send_message(request, chat_id):
         chat.save()
     # 保存用户消息
     Message.objects.create(chat=chat, content=user_message, sender='user')
-    # AI回复
-    ai_reply = call_deepseek_ai(user_message=user_message)
+
+    # === RAG增强 ===
+    rag_service = get_rag_service()
+    rag_result = rag_service.get_enhanced_response(user_message)
+    enhanced_prompt = rag_result['enhanced_prompt']
+
+    # 兜底：无知识库时查找tone表的描述
+    if not rag_result.get('has_relevant_info', False):
+        import pymysql
+        # 取任意一条qa_data的tone_id（如无则用1）
+        tone_id = 1
+        try:
+            conn = pymysql.connect(host='localhost', port=3306, user='root', password='Awc5624/', database='ragdb', charset='utf8mb4')
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT tone_id FROM qa_data LIMIT 1")
+                row = cursor.fetchone()
+                if row and row[0]:
+                    tone_id = row[0]
+                cursor.execute("SELECT description FROM tone WHERE id=%s", (tone_id,))
+                tone_row = cursor.fetchone()
+                tone_desc = tone_row[0] if tone_row and tone_row[0] else '亲切友好，专业简洁'
+            conn.close()
+        except Exception as e:
+            print("获取tone描述失败：", e)
+            tone_desc = '亲切友好，专业简洁'
+        enhanced_prompt = (
+            f"你是一个专业的智能客服助手，名叫'聆析智服'。请用如下风格回答：{tone_desc}\n"
+            f"用户问题: {user_message}\n"
+            "如果你不知道答案，也请礼貌回复用户，可以从网络相关知识中获取信息并尽量给出有帮助的建议"
+        )
+    print("最终AI prompt：", enhanced_prompt)
+    try:
+        ai_reply = call_deepseek_ai(user_message=enhanced_prompt)
+    except Exception as e:
+        print("AI接口异常：", e)
+        ai_reply = "很抱歉，当前AI服务暂时无法回答您的问题。"
+
     Message.objects.create(chat=chat, content=ai_reply, sender='bot')
     # 更新对话更新时间
     chat.updated_at = chat.messages.latest('created_at').created_at
