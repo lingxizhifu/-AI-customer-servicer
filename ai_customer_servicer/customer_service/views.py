@@ -22,6 +22,476 @@ import random
 from django.contrib.auth.decorators import login_required
 from rest_framework.parsers import MultiPartParser, FormParser
 from customer_service.rag_service import get_rag_service
+# 在你的 views.py 文件中添加以下用户管理相关的视图函数
+
+from django.contrib.auth.models import User
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.contrib.auth.decorators import user_passes_test
+from datetime import datetime, timedelta
+from django.utils import timezone
+
+#add new
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_real_time_stats(request):
+    """获取实时统计数据"""
+    try:
+        from datetime import datetime, timedelta
+        from django.utils import timezone
+        
+        # 获取当前日期
+        today = timezone.now().date()
+        yesterday = today - timedelta(days=1)
+        
+        # 总使用次数（Message总数）
+        total_usage = Message.objects.count()
+        yesterday_total_usage = Message.objects.filter(created_at__date__lt=today).count()
+        
+        # 今日对话量
+        today_chats = Chat.objects.filter(created_at__date=today).count()
+        yesterday_chats = Chat.objects.filter(created_at__date=yesterday).count()
+        
+        # 计算今日对话量变化百分比
+        if yesterday_chats > 0:
+            chats_change_percent = round(((today_chats - yesterday_chats) / yesterday_chats) * 100)
+        else:
+            chats_change_percent = 100 if today_chats > 0 else 0
+        
+        # 问题解决率计算（基于对话中是否有AI回复作为解决标准）
+        total_chats_with_messages = Chat.objects.filter(messages__isnull=False).distinct().count()
+        solved_chats = Chat.objects.filter(
+            messages__sender='bot'
+        ).distinct().count()
+        
+        if total_chats_with_messages > 0:
+            solve_rate_percent = round((solved_chats / total_chats_with_messages) * 100)
+        else:
+            solve_rate_percent = 0
+        
+        # 昨天的问题解决率
+        yesterday_total_chats = Chat.objects.filter(
+            created_at__date=yesterday,
+            messages__isnull=False
+        ).distinct().count()
+        yesterday_solved_chats = Chat.objects.filter(
+            created_at__date=yesterday,
+            messages__sender='bot'
+        ).distinct().count()
+        
+        if yesterday_total_chats > 0:
+            yesterday_solve_rate = round((yesterday_solved_chats / yesterday_total_chats) * 100)
+        else:
+            yesterday_solve_rate = 0
+        
+        solve_rate_change = solve_rate_percent - yesterday_solve_rate
+        
+        # 今日投诉（基于包含负面词汇的用户消息）
+        negative_keywords = ['投诉', '问题', '错误', '不满', '差', '烂', '垃圾', '退款', '客服']
+        today_complaints = Message.objects.filter(
+            created_at__date=today,
+            sender='user',
+            content__iregex=r'(' + '|'.join(negative_keywords) + ')'
+        ).count()
+        
+        yesterday_complaints = Message.objects.filter(
+            created_at__date=yesterday,
+            sender='user',
+            content__iregex=r'(' + '|'.join(negative_keywords) + ')'
+        ).count()
+        
+        # 计算投诉变化百分比
+        if yesterday_complaints > 0:
+            complaints_change_percent = round(((today_complaints - yesterday_complaints) / yesterday_complaints) * 100)
+        else:
+            complaints_change_percent = 100 if today_complaints > 0 else 0
+        
+        # API使用量（今日消息总数，包括用户和AI）
+        today_api_usage = Message.objects.filter(created_at__date=today).count()
+        
+        # 计算总使用次数变化
+        total_usage_change = total_usage - yesterday_total_usage
+        
+        return Response({
+            'success': True,
+            'data': {
+                'total_usage': total_usage,
+                'total_usage_change': f"+{total_usage_change}" if total_usage_change >= 0 else str(total_usage_change),
+                'today_chats': today_chats,
+                'chats_change_percent': chats_change_percent,
+                'chats_change_text': f"{abs(chats_change_percent)}%{'↑' if chats_change_percent >= 0 else '↓'}",
+                'solve_rate': f"{solve_rate_percent}%",
+                'solve_rate_change': solve_rate_change,
+                'solve_rate_change_text': f"{abs(solve_rate_change)}%{'↑' if solve_rate_change >= 0 else '↓'}",
+                'today_complaints': today_complaints,
+                'complaints_change_percent': complaints_change_percent,
+                'complaints_change_text': f"{abs(complaints_change_percent)}%{'↑' if complaints_change_percent >= 0 else '↓'}",
+                'today_api_usage': today_api_usage,
+                'timestamp': timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'获取统计数据失败: {str(e)}'
+        }, status=500)
+
+#add new
+# 检查是否为超级用户的装饰器
+def is_superuser(user):
+    return user.is_superuser
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_users_list(request):
+    """获取用户列表（带分页和搜索）"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    # 获取查询参数
+    page = int(request.GET.get('page', 1))
+    page_size = int(request.GET.get('page_size', 10))
+    search = request.GET.get('search', '').strip()
+    
+    # 构建查询条件
+    users = User.objects.all().order_by('-date_joined')
+    
+    if search:
+        users = users.filter(
+            Q(username__icontains=search) |
+            Q(email__icontains=search) |
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search)
+        )
+    
+    # 分页
+    paginator = Paginator(users, page_size)
+    page_obj = paginator.get_page(page)
+    
+    # 构造返回数据
+    users_data = []
+    for user in page_obj:
+        # 获取用户角色
+        if user.is_superuser:
+            role = "超级管理员"
+            permissions = "全权限"
+        elif user.is_staff:
+            role = "编辑员"
+            permissions = "可编辑"
+        else:
+            role = "查看员"
+            permissions = "只读"
+        
+        # 获取最后登录时间
+        last_login = user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else '从未登录'
+        
+        # 判断在线状态（这里简化处理，可以根据实际需求调整）
+        is_online = user.last_login and user.last_login > timezone.now() - timedelta(minutes=30) if user.last_login else False
+        
+        # 获取头像（从profile中）
+        avatar_text = user.username[0].upper() if user.username else 'U'
+        avatar_color = generate_avatar_color(user.id)
+        
+        users_data.append({
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': role,
+            'permissions': permissions,
+            'last_login': last_login,
+            'is_online': is_online,
+            'status': '在线' if is_online else '离线',
+            'avatar_text': avatar_text,
+            'avatar_color': avatar_color,
+            'is_active': user.is_active,
+            'date_joined': user.date_joined.strftime('%Y-%m-%d %H:%M')
+        })
+    
+    return Response({
+        'users': users_data,
+        'total': paginator.count,
+        'current_page': page,
+        'total_pages': paginator.num_pages,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous()
+    })
+
+def generate_avatar_color(user_id):
+    """根据用户ID生成头像颜色"""
+    colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
+        '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'
+    ]
+    return colors[user_id % len(colors)]
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_user(request):
+    """创建新用户"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    data = request.data
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+    password = data.get('password', '').strip()
+    role = data.get('role', 'viewer')  # admin, editor, viewer
+    first_name = data.get('first_name', '').strip()
+    last_name = data.get('last_name', '').strip()
+    
+    # 验证必填字段
+    if not username or not password:
+        return Response({'error': '用户名和密码不能为空'}, status=400)
+    
+    # 检查用户名是否已存在
+    if User.objects.filter(username=username).exists():
+        return Response({'error': '用户名已存在'}, status=400)
+    
+    # 检查邮箱是否已存在
+    if email and User.objects.filter(email=email).exists():
+        return Response({'error': '邮箱已被使用'}, status=400)
+    
+    try:
+        # 创建用户
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+        
+        # 设置角色权限
+        if role == 'admin':
+            user.is_superuser = True
+            user.is_staff = True
+        elif role == 'editor':
+            user.is_staff = True
+        # viewer 默认权限即可
+        
+        user.save()
+        
+        # 创建对应的Profile
+        from .models import Profile
+        Profile.objects.create(user=user)
+        
+        return Response({'success': True, 'message': '用户创建成功', 'user_id': user.id})
+    
+    except Exception as e:
+        return Response({'error': f'创建用户失败: {str(e)}'}, status=500)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user(request, user_id):
+    """更新用户信息"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': '用户不存在'}, status=404)
+    
+    data = request.data
+    
+    # 更新基本信息
+    if 'username' in data:
+        username = data['username'].strip()
+        if username != user.username and User.objects.filter(username=username).exists():
+            return Response({'error': '用户名已存在'}, status=400)
+        user.username = username
+    
+    if 'email' in data:
+        email = data['email'].strip()
+        if email != user.email and User.objects.filter(email=email).exists():
+            return Response({'error': '邮箱已被使用'}, status=400)
+        user.email = email
+    
+    if 'first_name' in data:
+        user.first_name = data['first_name'].strip()
+    
+    if 'last_name' in data:
+        user.last_name = data['last_name'].strip()
+    
+    # 更新密码（如果提供）
+    if 'password' in data and data['password'].strip():
+        user.set_password(data['password'].strip())
+    
+    # 更新角色权限
+    if 'role' in data:
+        role = data['role']
+        if role == 'admin':
+            user.is_superuser = True
+            user.is_staff = True
+        elif role == 'editor':
+            user.is_superuser = False
+            user.is_staff = True
+        else:  # viewer
+            user.is_superuser = False
+            user.is_staff = False
+    
+    # 更新状态
+    if 'is_active' in data:
+        user.is_active = data['is_active']
+    
+    try:
+        user.save()
+        return Response({'success': True, 'message': '用户信息更新成功'})
+    except Exception as e:
+        return Response({'error': f'更新失败: {str(e)}'}, status=500)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_user(request, user_id):
+    """删除用户"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({'error': '用户不存在'}, status=404)
+    
+    # 不能删除自己
+    if user.id == request.user.id:
+        return Response({'error': '不能删除自己的账户'}, status=400)
+    
+    try:
+        user.delete()
+        return Response({'success': True, 'message': '用户删除成功'})
+    except Exception as e:
+        return Response({'error': f'删除失败: {str(e)}'}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_detail(request, user_id):
+    """获取用户详细信息"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # 获取角色
+        if user.is_superuser:
+            role = "admin"
+        elif user.is_staff:
+            role = "editor"
+        else:
+            role = "viewer"
+        
+        user_data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'role': role,
+            'is_active': user.is_active,
+            'last_login': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else None,
+            'date_joined': user.date_joined.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        
+        # 尝试获取Profile信息
+        try:
+            if hasattr(user, 'profile'):
+                user_data.update({
+                    'nickname': user.profile.nickname,
+                    'mobile': user.profile.mobile,
+                    'avatar': user.profile.avatar.url if user.profile.avatar else None
+                })
+        except:
+            pass
+        
+        return Response(user_data)
+    
+    except User.DoesNotExist:
+        return Response({'error': '用户不存在'}, status=404)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def batch_delete_users(request):
+    """批量删除用户"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    user_ids = request.data.get('user_ids', [])
+    if not user_ids:
+        return Response({'error': '请选择要删除的用户'}, status=400)
+    
+    # 不能删除自己
+    if request.user.id in user_ids:
+        return Response({'error': '不能删除自己的账户'}, status=400)
+    
+    try:
+        deleted_count = User.objects.filter(id__in=user_ids).delete()[0]
+        return Response({
+            'success': True, 
+            'message': f'成功删除 {deleted_count} 个用户'
+        })
+    except Exception as e:
+        return Response({'error': f'批量删除失败: {str(e)}'}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def export_users(request):
+    """导出用户数据"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    users = User.objects.all().order_by('-date_joined')
+    
+    export_data = []
+    for user in users:
+        role = "超级管理员" if user.is_superuser else ("编辑员" if user.is_staff else "查看员")
+        export_data.append({
+            'ID': user.id,
+            '用户名': user.username,
+            '邮箱': user.email,
+            '姓名': f"{user.first_name} {user.last_name}".strip(),
+            '角色': role,
+            '状态': '激活' if user.is_active else '禁用',
+            '最后登录': user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else '从未登录',
+            '注册时间': user.date_joined.strftime('%Y-%m-%d %H:%M:%S')
+        })
+    
+    return Response({
+        'success': True,
+        'data': export_data,
+        'total': len(export_data)
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_user_status(request, user_id):
+    """切换用户激活状态"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    
+    try:
+        user = User.objects.get(id=user_id)
+        
+        # 不能禁用自己
+        if user.id == request.user.id:
+            return Response({'error': '不能禁用自己的账户'}, status=400)
+        
+        user.is_active = not user.is_active
+        user.save()
+        
+        status_text = '激活' if user.is_active else '禁用'
+        return Response({
+            'success': True, 
+            'message': f'用户已{status_text}',
+            'is_active': user.is_active
+        })
+    
+    except User.DoesNotExist:
+        return Response({'error': '用户不存在'}, status=404)
+
+#add new
 
 @login_required(login_url='/login/')
 def index(request):
@@ -323,12 +793,398 @@ def user_avatar_upload(request):
     return Response({'success': True, 'avatar': profile.avatar.url})
 
 def overview_management(request):
-    return render(request, 'overview_management.html')
+    from datetime import datetime, timedelta
+    from django.utils import timezone
+    
+    # 获取当前日期
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+    
+    # 总使用次数（Message总数）
+    total_usage = Message.objects.count()
+    
+    # 今日对话量
+    today_chats = Chat.objects.filter(created_at__date=today).count()
+    
+    # 问题解决率计算（基于对话中是否有AI回复作为解决标准）
+    total_chats_with_messages = Chat.objects.filter(messages__isnull=False).distinct().count()
+    solved_chats = Chat.objects.filter(messages__sender='bot').distinct().count()
+    
+    if total_chats_with_messages > 0:
+        solve_rate_percent = round((solved_chats / total_chats_with_messages) * 100)
+        solve_rate = f"{solve_rate_percent}%"
+    else:
+        solve_rate = "0%"
+    
+    # 今日投诉（基于包含负面词汇的用户消息）
+    negative_keywords = ['投诉', '问题', '错误', '不满', '差', '烂', '垃圾', '退款', '客服']
+    today_complaints = Message.objects.filter(
+        created_at__date=today,
+        sender='user',
+        content__iregex=r'(' + '|'.join(negative_keywords) + ')'
+    ).count()
+    
+    # API使用量（今日消息总数）
+    today_api_usage = Message.objects.filter(created_at__date=today).count()
+
+    context = {
+        'total_usage': total_usage,
+        'today_chats': today_chats,
+        'solve_rate': solve_rate,
+        'today_complaints': today_complaints,
+        'today_api_usage': today_api_usage,
+    }
+    return render(request, 'overview_management.html', context)
 
 def users_management(request):
     return render(request, 'users_management.html')
 
+# FAQ管理页面视图 - 修复版
+@login_required(login_url='/login/')
 def faq_management(request):
-    return render(request, 'faq_management.html')
+    """FAQ管理页面"""
+    return render(request, 'faq_management.html', {'user': request.user})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def batch_enable_users(request):
+    """批量激活用户"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    user_ids = request.data.get('user_ids', [])
+    if not user_ids:
+        return Response({'error': '请选择要激活的用户'}, status=400)
+    # 不能激活自己以外的超级管理员（可选，视需求）
+    updated = User.objects.filter(id__in=user_ids).update(is_active=True)
+    return Response({'success': True, 'message': f'成功激活 {updated} 个用户'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def batch_disable_users(request):
+    """批量禁用用户"""
+    if not request.user.is_superuser:
+        return Response({'error': '权限不足'}, status=403)
+    user_ids = request.data.get('user_ids', [])
+    if not user_ids:
+        return Response({'error': '请选择要禁用的用户'}, status=400)
+    # 不能禁用自己
+    if request.user.id in user_ids:
+        return Response({'error': '不能禁用自己的账户'}, status=400)
+    updated = User.objects.filter(id__in=user_ids).update(is_active=False)
+    return Response({'success': True, 'message': f'成功禁用 {updated} 个用户'})
+
+# ===================以下是修复后的FAQ管理相关视图函数===================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_faqs_list(request):
+    """获取FAQ列表（带分页和搜索）- 修复版"""
+    try:
+        # 获取查询参数
+        page = int(request.GET.get('page', 1))
+        page_size = int(request.GET.get('page_size', 10))
+        search = request.GET.get('search', '').strip()
+        category = request.GET.get('category', '').strip()
+        status = request.GET.get('status', '').strip()
+        
+        # 构建查询条件
+        faqs = FAQ.objects.all().order_by('-id')
+        
+        # 关键词搜索
+        if search:
+            faqs = faqs.filter(
+                Q(question__icontains=search) |
+                Q(answer__icontains=search)
+            )
+        
+        # 分类筛选
+        if category:
+            faqs = faqs.filter(category=category)
+        
+        # 状态筛选 (基于is_main字段，True为启用，False为禁用)
+        if status == 'active':
+            faqs = faqs.filter(is_main=True)
+        elif status == 'inactive':
+            faqs = faqs.filter(is_main=False)
+        
+        # 分页
+        paginator = Paginator(faqs, page_size)
+        page_obj = paginator.get_page(page)
+        
+        # 构造返回数据
+        faqs_data = []
+        for faq in page_obj:
+            # 格式化时间
+            created_time = faq.created_at.strftime('%Y-%m-%d') if hasattr(faq, 'created_at') and faq.created_at else timezone.now().strftime('%Y-%m-%d')
+            updated_time = faq.updated_at.strftime('%Y-%m-%d') if hasattr(faq, 'updated_at') and faq.updated_at else timezone.now().strftime('%Y-%m-%d')
+            
+            faqs_data.append({
+                'id': faq.id,
+                'question': faq.question,
+                'answer': faq.answer,
+                'category': faq.category,
+                'is_main': faq.is_main,
+                'status_text': '启用' if faq.is_main else '禁用',
+                'created_time': created_time,
+                'updated_time': updated_time,
+            })
+        
+        return Response({
+            'faqs': faqs_data,
+            'total': paginator.count,
+            'current_page': page,
+            'total_pages': paginator.num_pages,
+            'has_next': page_obj.has_next(),
+            'has_previous': page_obj.has_previous()
+        })
+    
+    except Exception as e:
+        return Response({
+            'error': f'获取FAQ列表失败: {str(e)}'
+        }, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_faq(request):
+    """创建新FAQ - 修复版"""
+    try:
+        data = request.data
+        question = data.get('question', '').strip()
+        answer = data.get('answer', '').strip()
+        category = data.get('category', '常见问题').strip()
+        is_main = data.get('is_main', True)
+        
+        # 验证必填字段
+        if not question or not answer:
+            return Response({
+                'success': False,
+                'error': '问题和答案不能为空'
+            }, status=400)
+        
+        # 检查是否已存在相同的问题
+        if FAQ.objects.filter(question=question).exists():
+            return Response({
+                'success': False,
+                'error': '该问题已经存在'
+            }, status=400)
+        
+        faq = FAQ.objects.create(
+            question=question,
+            answer=answer,
+            category=category,
+            is_main=is_main
+        )
+        
+        return Response({
+            'success': True, 
+            'message': 'FAQ创建成功', 
+            'faq_id': faq.id
+        })
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'创建FAQ失败: {str(e)}'
+        }, status=500)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_faq(request, faq_id):
+    """更新FAQ信息 - 修复版"""
+    try:
+        faq = FAQ.objects.get(id=faq_id)
+    except FAQ.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'FAQ不存在'
+        }, status=404)
+    
+    try:
+        data = request.data
+        
+        # 更新字段
+        if 'question' in data:
+            new_question = data['question'].strip()
+            # 检查是否与其他FAQ重复（排除自己）
+            if new_question != faq.question and FAQ.objects.filter(question=new_question).exclude(id=faq.id).exists():
+                return Response({
+                    'success': False,
+                    'error': '该问题已经存在'
+                }, status=400)
+            faq.question = new_question
+        
+        if 'answer' in data:
+            faq.answer = data['answer'].strip()
+        
+        if 'category' in data:
+            faq.category = data['category'].strip()
+        
+        if 'is_main' in data:
+            faq.is_main = data['is_main']
+        
+        # 验证必填字段
+        if not faq.question or not faq.answer:
+            return Response({
+                'success': False,
+                'error': '问题和答案不能为空'
+            }, status=400)
+        
+        faq.save()
+        return Response({
+            'success': True, 
+            'message': 'FAQ更新成功'
+        })
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'更新失败: {str(e)}'
+        }, status=500)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_faq(request, faq_id):
+    """删除FAQ - 修复版"""
+    try:
+        faq = FAQ.objects.get(id=faq_id)
+        faq.delete()
+        return Response({
+            'success': True, 
+            'message': 'FAQ删除成功'
+        })
+    except FAQ.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'FAQ不存在'
+        }, status=404)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'删除失败: {str(e)}'
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_faq_detail(request, faq_id):
+    """获取FAQ详细信息 - 修复版"""
+    try:
+        faq = FAQ.objects.get(id=faq_id)
+        
+        faq_data = {
+            'id': faq.id,
+            'question': faq.question,
+            'answer': faq.answer,
+            'category': faq.category,
+            'is_main': faq.is_main,
+        }
+        
+        return Response(faq_data)
+    
+    except FAQ.DoesNotExist:
+        return Response({
+            'error': 'FAQ不存在'
+        }, status=404)
+    except Exception as e:
+        return Response({
+            'error': f'获取FAQ详情失败: {str(e)}'
+        }, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def batch_delete_faqs(request):
+    """批量删除FAQ - 修复版"""
+    try:
+        faq_ids = request.data.get('faq_ids', [])
+        if not faq_ids:
+            return Response({
+                'success': False,
+                'error': '请选择要删除的FAQ'
+            }, status=400)
+        
+        deleted_count = FAQ.objects.filter(id__in=faq_ids).delete()[0]
+        return Response({
+            'success': True, 
+            'message': f'成功删除 {deleted_count} 个FAQ'
+        })
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'批量删除失败: {str(e)}'
+        }, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def export_faqs(request):
+    """导出FAQ数据 - 修复版"""
+    try:
+        faqs = FAQ.objects.all().order_by('-id')
+        
+        export_data = []
+        for faq in faqs:
+            created_time = faq.created_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(faq, 'created_at') and faq.created_at else ''
+            updated_time = faq.updated_at.strftime('%Y-%m-%d %H:%M:%S') if hasattr(faq, 'updated_at') and faq.updated_at else ''
+            
+            export_data.append({
+                'ID': faq.id,
+                '问题': faq.question,
+                '答案': faq.answer,
+                '分类': faq.category,
+                '状态': '启用' if faq.is_main else '禁用',
+                '创建时间': created_time,
+                '更新时间': updated_time,
+            })
+        
+        return Response({
+            'success': True,
+            'data': export_data,
+            'total': len(export_data)
+        })
+    
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'导出失败: {str(e)}'
+        }, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_faq_status(request, faq_id):
+    """切换FAQ状态 - 修复版"""
+    try:
+        faq = FAQ.objects.get(id=faq_id)
+        faq.is_main = not faq.is_main
+        faq.save()
+        
+        status_text = '启用' if faq.is_main else '禁用'
+        return Response({
+            'success': True, 
+            'message': f'FAQ已{status_text}',
+            'is_main': faq.is_main
+        })
+    
+    except FAQ.DoesNotExist:
+        return Response({
+            'success': False,
+            'error': 'FAQ不存在'
+        }, status=404)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'操作失败: {str(e)}'
+        }, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_faq_categories(request):
+    """获取FAQ分类列表 - 修复版"""
+    try:
+        categories = FAQ.objects.values_list('category', flat=True).distinct()
+        return Response({
+            'categories': list(categories)
+        })
+    except Exception as e:
+        return Response({
+            'error': f'获取分类失败: {str(e)}'
+        }, status=500)
 
 # Create your views here.

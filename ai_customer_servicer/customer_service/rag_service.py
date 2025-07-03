@@ -19,8 +19,8 @@ MYSQL_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': 'Awc5624/',
-    'database': 'ragdb',
+    'password': '123456',
+    'database': 'ai_chat_db',
     'charset': 'utf8mb4'
 }
 
@@ -34,8 +34,8 @@ def get_db_config():
         'host': db.get('HOST', 'localhost'),
         'port': int(db.get('PORT', 3306)),
         'user': db.get('USER', 'root'),
-        'password': db.get('PASSWORD', ''),
-        'database': db.get('NAME', 'ragdb'),
+        'password': db.get('PASSWORD', '123456'),
+        'database': db.get('NAME', 'ai_chat_db'),
         'charset': db.get('OPTIONS', {}).get('charset', 'utf8mb4')
     }
 

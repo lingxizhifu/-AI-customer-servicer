@@ -3,8 +3,16 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import uuid
 from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-# Create your models here.
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """用户保存时同时保存Profile"""
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+    else:
+        Profile.objects.create(user=instance)
 
 class Conversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='conversations')
@@ -37,10 +45,15 @@ class FAQ(models.Model):
     question = models.CharField(max_length=255)
     answer = models.TextField()
     category = models.CharField(max_length=50, default='常见问题')
-    is_main = models.BooleanField(default=False)
+    is_main = models.BooleanField(default=True)  # True表示启用，False表示禁用
+    created_at = models.DateTimeField(auto_now_add=True)  # 新增字段
+    updated_at = models.DateTimeField(auto_now=True)      # 新增字段
 
     def __str__(self):
         return self.question
+
+    class Meta:
+        ordering = ['-created_at']  # 按创建时间倒序排列
 
 def avatar_upload_path(instance, filename):
     # 存到 media/avatars/目录下
@@ -51,7 +64,6 @@ class Profile(models.Model):
     nickname = models.CharField(max_length=50, blank=True, null=True, verbose_name='昵称')
     mobile = models.CharField(max_length=20, blank=True, null=True, verbose_name='手机号')
     avatar = models.ImageField(upload_to=avatar_upload_path, blank=True, null=True, verbose_name='头像')
-    # 可扩展更多字段，如性别、生日等
 
     def __str__(self):
         return self.nickname or self.user.username

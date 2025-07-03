@@ -18,7 +18,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    BASE_DIR / 'customer_service/static',
+    BASE_DIR / 'static',                    # 项目根目录的static
+    BASE_DIR / 'customer_service/static',   # 应用的static
 ]
 
 TEMPLATES = [
@@ -28,7 +29,7 @@ TEMPLATES = [
         # ...
     },
 ]
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,7 +44,7 @@ SECRET_KEY = "django-insecure-9f4($y+u8v9x8wf!=8z_a)udlgkxm7l!nd_5@-p!fkwzz5p$ga
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']
 
 
 # Application definition
@@ -95,9 +96,9 @@ WSGI_APPLICATION = "ai_customer_servicer.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'ai_customer_servicer',      # 你的数据库名
+        'NAME': 'ai_chat_db',      # 你的数据库名
         'USER': 'root',           # 你的MySQL用户名
-        'PASSWORD': 'Awc5624/',   # 你的MySQL密码
+        'PASSWORD': '123456',   # 你的MySQL密码
         'HOST': 'localhost',                 # 或远程主机
         'PORT': '3306',
         'OPTIONS': {

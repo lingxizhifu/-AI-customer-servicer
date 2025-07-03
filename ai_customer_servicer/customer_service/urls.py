@@ -14,6 +14,26 @@ from .views import users_management
 from .views import faq_management
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import path, include
+from django.conf.urls.static import static
+
+# 用户管理相关导入
+from .views import (
+    get_users_list, create_user, update_user, delete_user, 
+    get_user_detail, batch_delete_users, export_users, toggle_user_status,
+    batch_enable_users, batch_disable_users
+)
+
+# FAQ管理相关导入
+from .views import (
+    get_faqs_list, create_faq, update_faq, delete_faq,
+    get_faq_detail, batch_delete_faqs, export_faqs, 
+    toggle_faq_status, get_faq_categories
+)
+
+#API视图导入
+from .views import get_real_time_stats
 
 router = DefaultRouter()
 router.register(r'faqs', FAQViewSet)
@@ -43,7 +63,40 @@ urlpatterns = [
     path('overview_management/', overview_management, name='overview_management'),
     path('users_management/', users_management, name='users_management'),
     path('faq_management/', faq_management, name='faq_management'),
+        
+    # 用户管理相关API
+    path('api/users/', get_users_list, name='get_users_list'),
+    path('api/users/create/', create_user, name='create_user'),
+    path('api/users/<int:user_id>/', get_user_detail, name='get_user_detail'),
+    path('api/users/<int:user_id>/update/', update_user, name='update_user'),
+    path('api/users/<int:user_id>/delete/', delete_user, name='delete_user'),
+    path('api/users/<int:user_id>/toggle-status/', toggle_user_status, name='toggle_user_status'),
+    path('api/users/batch-delete/', batch_delete_users, name='batch_delete_users'),
+    path('api/users/export/', export_users, name='export_users'),
+    path('api/users/batch-enable/', batch_enable_users, name='batch_enable_users'),
+    path('api/users/batch-disable/', batch_disable_users, name='batch_disable_users'),
+
+    # FAQ管理相关API
+    path('api/faqs/', get_faqs_list, name='get_faqs_list'),
+    path('api/faqs/create/', create_faq, name='create_faq'),
+    path('api/faqs/<int:faq_id>/', get_faq_detail, name='get_faq_detail'),
+    path('api/faqs/<int:faq_id>/update/', update_faq, name='update_faq'),
+    path('api/faqs/<int:faq_id>/delete/', delete_faq, name='delete_faq'),
+    path('api/faqs/<int:faq_id>/toggle-status/', toggle_faq_status, name='toggle_faq_status'),
+    path('api/faqs/batch-delete/', batch_delete_faqs, name='batch_delete_faqs'),
+    path('api/faqs/export/', export_faqs, name='export_faqs'),
+    path('api/faqs/categories/', get_faq_categories, name='get_faq_categories'),
+
+
+
+    
+
+    # 其他API
+    path('api/overview/stats/', get_real_time_stats, name='get_real_time_stats'),
 ]
 
 if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0] if settings.STATICFILES_DIRS else '')
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    if hasattr(settings, 'MEDIA_URL') and hasattr(settings, 'MEDIA_ROOT'):
+        urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

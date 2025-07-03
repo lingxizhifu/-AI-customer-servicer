@@ -26,8 +26,8 @@
                             <img src="{% static 'Images/usage-icon.png' %}" alt="使用次数" onerror="this.style.display='none'; this.parentElement.innerHTML='💡';">
                         </div>
                     </div>
-                    <div class="stat-value">1,350</div>
-                    <div class="stat-change">vs 昨天</div>
+                    <div class="stat-value" id="total-usage">{{ total_usage }}</div>
+                    <div class="stat-change" id="total-usage-change">vs 昨天</div>
                 </div>
 
                 <div class="stat-card">
@@ -37,8 +37,8 @@
                             <img src="{% static 'Images/chat-icon.png' %}" alt="对话量" onerror="this.style.display='none'; this.parentElement.innerHTML='💬';">
                         </div>
                     </div>
-                    <div class="stat-value">234</div>
-                    <div class="stat-change negative">13%↓</div>
+                    <div class="stat-value" id="today-chats">{{ today_chats }}</div>
+                    <div class="stat-change negative" id="chats-change">13%↓</div>
                 </div>
 
                 <div class="stat-card">
@@ -48,8 +48,8 @@
                             <img src="{% static 'Images/solve-icon.png' %}" alt="解决率" onerror="this.style.display='none'; this.parentElement.innerHTML='✅';">
                         </div>
                     </div>
-                    <div class="stat-value">80%</div>
-                    <div class="stat-change">vs 昨天</div>
+                    <div class="stat-value" id="solve-rate">{{ solve_rate }}</div>
+                    <div class="stat-change" id="solve-rate-change">vs 昨天</div>
                 </div>
 
                 <div class="stat-card">
@@ -59,8 +59,8 @@
                             <img src="{% static 'Images/complaint-icon.png' %}" alt="投诉" onerror="this.style.display='none'; this.parentElement.innerHTML='⚠️';">
                         </div>
                     </div>
-                    <div class="stat-value">5</div>
-                    <div class="stat-change positive">25%↑</div>
+                    <div class="stat-value" id="today-complaints">{{ today_complaints }}</div>
+                    <div class="stat-change positive" id="complaints-change">25%↑</div>
                 </div>
             </div>
 
@@ -87,7 +87,7 @@
                         <canvas id="userChart"></canvas>
                     </div>
                 </div>
-
+                
                 <!-- API使用统计 -->
                 <div class="chart-card">
                     <div class="chart-header">
@@ -192,6 +192,112 @@
                 }
             }
         });
+
+        // ========== 实时数据更新功能 ==========
+        
+        // 获取CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // 获取实时统计数据
+        async function fetchRealTimeStats() {
+            try {
+                const response = await fetch('/api/overview/stats/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateStatsDisplay(result.data);
+                } else {
+                    console.error('获取统计数据失败:', result.error);
+                }
+            } catch (error) {
+                console.error('请求失败:', error);
+            }
+        }
+
+        // 更新页面显示的统计数据
+        function updateStatsDisplay(data) {
+            // 更新总使用次数
+            const totalUsageEl = document.getElementById('total-usage');
+            const totalUsageChangeEl = document.getElementById('total-usage-change');
+            if (totalUsageEl) {
+                totalUsageEl.textContent = data.total_usage;
+            }
+            if (totalUsageChangeEl) {
+                totalUsageChangeEl.textContent = `${data.total_usage_change} vs 昨天`;
+                totalUsageChangeEl.className = 'stat-change';
+            }
+
+            // 更新今日对话量
+            const todayChatsEl = document.getElementById('today-chats');
+            const chatsChangeEl = document.getElementById('chats-change');
+            if (todayChatsEl) {
+                todayChatsEl.textContent = data.today_chats;
+            }
+            if (chatsChangeEl) {
+                chatsChangeEl.textContent = data.chats_change_text;
+                chatsChangeEl.className = data.chats_change_percent >= 0 ? 'stat-change positive' : 'stat-change negative';
+            }
+
+            // 更新问题解决率
+            const solveRateEl = document.getElementById('solve-rate');
+            const solveRateChangeEl = document.getElementById('solve-rate-change');
+            if (solveRateEl) {
+                solveRateEl.textContent = data.solve_rate;
+            }
+            if (solveRateChangeEl) {
+                solveRateChangeEl.textContent = `${data.solve_rate_change_text} vs 昨天`;
+                solveRateChangeEl.className = data.solve_rate_change >= 0 ? 'stat-change positive' : 'stat-change negative';
+            }
+
+            // 更新今日投诉
+            const todayComplaintsEl = document.getElementById('today-complaints');
+            const complaintsChangeEl = document.getElementById('complaints-change');
+            if (todayComplaintsEl) {
+                todayComplaintsEl.textContent = data.today_complaints;
+            }
+            if (complaintsChangeEl) {
+                complaintsChangeEl.textContent = data.complaints_change_text;
+                complaintsChangeEl.className = data.complaints_change_percent <= 0 ? 'stat-change positive' : 'stat-change negative';
+            }
+
+            console.log('统计数据已更新:', data.timestamp);
+        }
+
+        // 页面加载完成后开始定时更新
+        document.addEventListener('DOMContentLoaded', function() {
+            // 立即获取一次数据
+            fetchRealTimeStats();
+            
+            // 每30秒更新一次数据
+            setInterval(fetchRealTimeStats, 30000);
+        });
+
+        // ========== 原有的图表功能 ==========
 
         // 下拉菜单功能
         function toggleDropdown(chartId) {
