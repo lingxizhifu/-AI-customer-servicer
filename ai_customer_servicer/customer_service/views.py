@@ -548,61 +548,63 @@ def create_chat_and_history(request):
 
 @api_view(['POST'])
 def send_message(request, chat_id):
-    """发送消息并AI回复"""
     user_message = request.data.get('message', '')
+    kb = request.GET.get('kb', request.data.get('kb', 'default'))
+    kb_table_map = {
+        'default': 'qa_data',
+        'fashion': 'fashion_qa_data',
+        'laobeijing': 'lbj_qa_data',  # 新增体育用品客服表
+        # 可扩展更多
+    }
+    table_name = kb_table_map.get(kb, 'qa_data')
     if not user_message:
         return Response({'error': '消息不能为空'}, status=400)
     try:
         chat = Chat.objects.get(id=chat_id, is_active=True)
     except Chat.DoesNotExist:
         return Response({'error': '对话不存在'}, status=404)
-    # 检查是否为该对话的第一条用户消息
     if Message.objects.filter(chat=chat, sender='user').count() == 0:
-        # 取前20字作为标题
         new_title = user_message.strip().replace('\n', ' ')[:20]
         chat.title = new_title if new_title else '新对话'
         chat.save()
-    # 保存用户消息
     Message.objects.create(chat=chat, content=user_message, sender='user')
-
-    # === RAG增强 ===
     rag_service = get_rag_service()
-    rag_result = rag_service.get_enhanced_response(user_message)
+    rag_result = rag_service.get_enhanced_response(user_message, table_name=table_name)
     enhanced_prompt = rag_result['enhanced_prompt']
-
     # 兜底：无知识库时查找tone表的描述
-    if not rag_result.get('has_relevant_info', False):
-        import pymysql
-        # 取任意一条qa_data的tone_id（如无则用1）
-        tone_id = 1
-        try:
-            conn = pymysql.connect(host='localhost', port=3306, user='root', password='Awc5624/', database='ragdb', charset='utf8mb4')
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT tone_id FROM qa_data LIMIT 1")
-                row = cursor.fetchone()
-                if row and row[0]:
-                    tone_id = row[0]
-                cursor.execute("SELECT description FROM tone WHERE id=%s", (tone_id,))
-                tone_row = cursor.fetchone()
-                tone_desc = tone_row[0] if tone_row and tone_row[0] else '亲切友好，专业简洁'
-            conn.close()
-        except Exception as e:
-            print("获取tone描述失败：", e)
-            tone_desc = '亲切友好，专业简洁'
-        enhanced_prompt = (
-            f"你是一个专业的智能客服助手，名叫'聆析智服'。请用如下风格回答：{tone_desc}\n"
-            f"用户问题: {user_message}\n"
-            "如果你不知道答案，也请礼貌回复用户，可以从网络相关知识中获取信息并尽量给出有帮助的建议"
-        )
+    import pymysql
+    tone_id = None
+    try:
+        conn = pymysql.connect(host='localhost', port=3306, user='root', password='Awc5624/', database='ragdb', charset='utf8mb4')
+        with conn.cursor() as cursor:
+            # 优先查当前表的 tone_id
+            cursor.execute(f"SELECT tone_id FROM {table_name} WHERE tone_id IS NOT NULL LIMIT 1")
+            row = cursor.fetchone()
+            if row and row[0]:
+                tone_id = row[0]
+            else:
+                tone_id = 1  # 没查到就用默认
+            cursor.execute("SELECT description FROM tone WHERE id=%s", (tone_id,))
+            tone_row = cursor.fetchone()
+            tone_desc = tone_row[0] if tone_row and tone_row[0] else '亲切友好，专业简洁'
+        conn.close()
+    except Exception as e:
+        print("获取tone描述失败：", e)
+        tone_desc = '亲切友好，专业简洁'
+    print(f"【RAG】知识库无命中，启用兜底风格：{table_name}")
+    enhanced_prompt = (
+        f"你是一个专业的智能客服助手，名叫'聆析智服'。请用如下风格回答：{tone_desc}\n"
+        f"用户问题: {user_message}\n"
+        "如果你不知道答案，也请礼貌回复用户，可以从网络相关知识中获取信息并尽量给出有帮助的建议"
+    )
     print("最终AI prompt：", enhanced_prompt)
+    print(f"【DEBUG】当前kb参数：{kb}，table_name：{table_name}")
     try:
         ai_reply = call_deepseek_ai(user_message=enhanced_prompt)
     except Exception as e:
         print("AI接口异常：", e)
         ai_reply = "很抱歉，当前AI服务暂时无法回答您的问题。"
-
     Message.objects.create(chat=chat, content=ai_reply, sender='bot')
-    # 更新对话更新时间
     chat.updated_at = chat.messages.latest('created_at').created_at
     chat.save()
     return Response({'ai_reply': ai_reply})

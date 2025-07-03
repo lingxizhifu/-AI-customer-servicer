@@ -7,7 +7,7 @@ function toggleDropdown() {
 // 关闭下拉菜单（点击其他地方时）
 document.addEventListener('click', function(event) {
     const dropdown = document.getElementById('customerService');
-    if (!dropdown.contains(event.target)) {
+    if (dropdown && !dropdown.contains(event.target)) {
         dropdown.classList.remove('open');
     }
 });

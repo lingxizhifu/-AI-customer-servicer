@@ -1,7 +1,0 @@
-app1.py是运行index.html的，index页面为用户端的首页，
-包含两张图在static文件里ai——icon是聆析智服logo，user-avatar是用户图片
-
-app2.py 调用以下页面
-faq.html             # FAQ管理页面
-users.html           # 用户管理页面
-overview.html        # 数据中心页面 (新文件名)  包含四张图片在image文件夹

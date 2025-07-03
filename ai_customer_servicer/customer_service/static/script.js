@@ -7,6 +7,12 @@ let isTyping = false;
 let currentChatId = null;
 let isSearchMode = false; // 新增：标记是否处于搜索模式
 
+// 获取当前页面的 kb 参数（动态获取）
+function getCurrentKb() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('kb') || 'default';
+}
+
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
     messageInput.focus();
@@ -74,7 +80,8 @@ async function sendMessage() {
             const chatData = await chatResp.json();
             currentChatId = chatData.id;
         }
-        const response = await fetch(`/api/chats/${currentChatId}/send/`, {
+        console.log("实际发送请求URL：", `/api/chats/${currentChatId}/send/?kb=${getCurrentKb()}`);
+        const response = await fetch(`/api/chats/${currentChatId}/send/?kb=${getCurrentKb()}`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': window.CSRF_TOKEN},
             body: JSON.stringify({ message: message })

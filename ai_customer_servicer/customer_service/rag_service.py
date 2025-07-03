@@ -19,8 +19,8 @@ MYSQL_CONFIG = {
     'host': 'localhost',
     'port': 3306,
     'user': 'root',
-    'password': '123456',
-    'database': 'ai_chat_db',
+    'password': 'Awc5624/',
+    'database': 'ragdb',
     'charset': 'utf8mb4'
 }
 
@@ -173,7 +173,7 @@ class OfflineRAGService:
         """生成唯一ID"""
         return hashlib.md5(text.encode('utf-8')).hexdigest()[:16]
     
-    def load_qa_data(self, qa_data: List[Dict]) -> Dict:
+    def load_qa_data(self, qa_data: List[Dict], table_name: str = "qa_data") -> Dict:
         """加载问答数据到MySQL（可选，通常用导入工具）"""
         if not qa_data:
             return {'success': 0, 'error': 0}
@@ -192,7 +192,7 @@ class OfflineRAGService:
                     question_tokens = ' '.join(self.tokenize_chinese(question))
                     category = qa.get('category', self.categorize_question(question))
                     cursor.execute(
-                        "REPLACE INTO qa_data (id, question, answer, category, question_tokens, created_at) VALUES (%s, %s, %s, %s, %s, %s)",
+                        f"REPLACE INTO {table_name} (id, question, answer, category, question_tokens, created_at) VALUES (%s, %s, %s, %s, %s, %s)",
                         (qa_id, question, answer, category, question_tokens, datetime.now())
                     )
                     success_count += 1
@@ -208,14 +208,14 @@ class OfflineRAGService:
             'success_rate': round(success_count / len(qa_data) * 100, 2) if qa_data else 0
         }
     
-    def retrieve_relevant_qa(self, user_question: str, top_k: int = 5) -> List[Dict]:
+    def retrieve_relevant_qa(self, user_question: str, top_k: int = 5, table_name: str = "qa_data") -> List[Dict]:
         """检索相关问答（MySQL版）"""
         try:
             processed_question = self.preprocess_text(user_question)
             if not processed_question:
                 return []
             with self.conn.cursor() as cursor:
-                cursor.execute('SELECT question, answer, category FROM qa_data')
+                cursor.execute(f'SELECT question, answer, category FROM {table_name}')
                 all_qa = cursor.fetchall()
             if not all_qa:
                 print("⚠️ 知识库为空")
@@ -262,32 +262,45 @@ class OfflineRAGService:
         
         return prompt
     
-    def get_enhanced_response(self, user_question: str) -> Dict:
+    def get_enhanced_response(self, user_question: str, table_name: str = "qa_data") -> Dict:
         """获取增强回复信息"""
-        relevant_qa = self.retrieve_relevant_qa(user_question, top_k=3)
+        relevant_qa = self.retrieve_relevant_qa(user_question, top_k=3, table_name=table_name)
         enhanced_prompt = self.build_enhanced_prompt(user_question, relevant_qa)
         category = self.categorize_question(user_question)
         
-        return {
-            'enhanced_prompt': enhanced_prompt,
-            'relevant_qa': relevant_qa,
-            'has_relevant_info': len(relevant_qa) > 0,
-            'best_similarity': relevant_qa[0]['similarity'] if relevant_qa else 0,
-            'category': category,
-            'confidence': min(len(relevant_qa) / 3.0, 1.0)
-        }
+        if not relevant_qa:
+            print(f"【RAG】知识库无命中，启用兜底风格：{table_name}")
+            # 降级到简单字符串匹配
+            return {
+                'enhanced_prompt': enhanced_prompt,
+                'relevant_qa': relevant_qa,
+                'has_relevant_info': False,
+                'best_similarity': 0,
+                'category': category,
+                'confidence': 0.0
+            }
+        else:
+            print(f"【RAG】知识库命中，使用知识库内容：{table_name}")
+            return {
+                'enhanced_prompt': enhanced_prompt,
+                'relevant_qa': relevant_qa,
+                'has_relevant_info': True,
+                'best_similarity': relevant_qa[0]['similarity'] if relevant_qa else 0,
+                'category': category,
+                'confidence': min(len(relevant_qa) / 3.0, 1.0)
+            }
     
-    def get_collection_stats(self) -> Dict:
+    def get_collection_stats(self, table_name: str = "qa_data") -> Dict:
         """获取知识库统计（MySQL版）"""
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute('SELECT COUNT(*) FROM qa_data')
+                cursor.execute(f'SELECT COUNT(*) FROM {table_name}')
                 total_count = cursor.fetchone()[0]
-                cursor.execute('SELECT category, COUNT(*) FROM qa_data GROUP BY category')
+                cursor.execute(f'SELECT category, COUNT(*) FROM {table_name} GROUP BY category')
                 categories = dict(cursor.fetchall())
             return {
                 'total_documents': total_count,
-                'collection_name': 'mysql_qa_database',
+                'collection_name': f'mysql_{table_name}',
                 'categories': categories,
                 'status': 'active',
                 'db_host': MYSQL_CONFIG['host'],
@@ -300,12 +313,12 @@ class OfflineRAGService:
                 'error': str(e)
             }
     
-    def search_qa(self, keyword: str, limit: int = 10) -> List[Dict]:
+    def search_qa(self, keyword: str, limit: int = 10, table_name: str = "qa_data") -> List[Dict]:
         """搜索问答（MySQL版）"""
         try:
             with self.conn.cursor() as cursor:
                 cursor.execute(
-                    'SELECT question, answer, category FROM qa_data WHERE question LIKE %s OR answer LIKE %s LIMIT %s',
+                    f'SELECT question, answer, category FROM {table_name} WHERE question LIKE %s OR answer LIKE %s LIMIT %s',
                     (f'%{keyword}%', f'%{keyword}%', limit)
                 )
                 results = []
